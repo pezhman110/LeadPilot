@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+**/appsettings.Development.json
+**/secrets.json
+**/bin/
+**/obj/
+.vs/
+*.user
+*.pfx
+*.key
+TestResults/
+coverage/
