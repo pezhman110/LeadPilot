@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>حاکمیت جذب — LeadPilot</title>
+<style>
+:root{
+  --void:#07060D;--panel:#0F0C1A;--panel2:#151024;--edge:rgba(214,178,102,.16);
+  --gold:#D6B266;--amber:#F2CE80;--ink:#ECE7F5;--dim:#9C93B4;
+  --ok:#54B78A;--warn:#E4A94C;--bad:#E1685E;--info:#5BB6D6;--idle:#4A4460;
+}
+*{box-sizing:border-box}
+body{margin:0;background:
+  radial-gradient(900px 500px at 82% -10%,#1a1330 0%,transparent 60%),
+  radial-gradient(700px 500px at 0% 110%,#12182b 0%,transparent 55%),var(--void);
+  color:var(--ink);font-family:'Vazirmatn','Segoe UI',Tahoma,sans-serif;line-height:1.6;min-height:100vh}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px 60px}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 0;border-bottom:1px solid var(--edge)}
+.mark{display:flex;align-items:center;gap:12px}
+.logo{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,var(--gold),var(--amber));box-shadow:0 0 24px rgba(214,178,102,.4)}
+.mark b{font-size:15px}.mark small{display:block;color:var(--dim);font-weight:400;font-size:12px}
+.lang{background:transparent;border:1px solid var(--edge);color:var(--ink);border-radius:9px;padding:7px 13px;cursor:pointer;font-family:inherit;font-size:12px}
+h2{color:var(--amber);font-size:13px;letter-spacing:1.5px;text-transform:uppercase;margin:22px 0 4px;font-weight:600}
+.sub{color:var(--dim);font-size:12.5px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:820px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--edge);border-radius:13px;padding:14px 16px}
+.card h3{margin:0 0 10px;font-size:13px;color:var(--ink)}
+/* pipeline */
+.pipe{display:flex;flex-direction:column;gap:4px}
+.stage{display:flex;align-items:center;gap:9px;font-size:12.5px;padding:6px 10px;border-radius:8px;border:1px solid var(--edge);background:var(--panel2)}
+.stage .d{width:9px;height:9px;border-radius:50%;background:var(--idle);flex:0 0 9px}
+.stage.pass .d{background:var(--ok);box-shadow:0 0 7px var(--ok)}
+.stage.pass{border-color:rgba(84,183,138,.35)}
+.stage.stop .d{background:var(--bad)}
+.stage.stop{border-color:rgba(225,104,94,.4)}
+.stage small{color:var(--dim);margin-inline-start:auto;font-size:11px}
+.toggles{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.tg{font-size:11px;padding:6px 10px;border-radius:8px;border:1px solid var(--edge);background:var(--panel2);color:var(--dim);cursor:pointer}
+.tg.on{color:#231703;background:linear-gradient(135deg,var(--gold),var(--amber));border-color:transparent;font-weight:700}
+/* provider states */
+.prov{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12.5px}
+.prov:last-child{border-bottom:0}
+.state{font-size:10.5px;padding:2px 9px;border-radius:20px}
+.s-disc{color:var(--info);background:rgba(91,182,214,.12)}
+.s-enr{color:var(--warn);background:rgba(228,169,76,.12)}
+.s-out{color:var(--ok);background:rgba(84,183,138,.12)}
+.s-no{color:var(--dim);background:rgba(255,255,255,.05)}
+.s-rej{color:var(--bad);background:rgba(225,104,94,.12)}
+.caps{font-size:10px;color:var(--dim);margin-inline-start:8px}
+/* matrix */
+.mx{display:flex;flex-direction:column;gap:5px}
+.mxr{display:flex;align-items:center;justify-content:space-between;font-size:12px;padding:7px 11px;border-radius:9px;border:1px solid var(--edge);background:var(--panel)}
+.tag{font-size:10.5px;padding:2px 9px;border-radius:20px}
+.tag.y{color:var(--ok);background:rgba(84,183,138,.12)}
+.tag.c{color:var(--warn);background:rgba(228,169,76,.12)}
+.tag.n{color:var(--bad);background:rgba(225,104,94,.12)}
+.note{font-size:11.5px;color:var(--dim);border:1px dashed var(--edge);border-radius:11px;padding:11px 15px;margin-top:14px}
+.note b{color:var(--amber)}
+code{background:rgba(255,255,255,.05);padding:1px 6px;border-radius:5px;color:var(--amber);font-size:11px}
+footer{color:var(--dim);font-size:11px;border-top:1px solid var(--edge);margin-top:26px;padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark"><div class="logo"></div>
+      <div><b id="t_title"></b><small id="t_sub"></small></div></div>
+    <button class="lang" onclick="toggleLang()">EN / فارسی</button>
+  </header>
+
+  <div class="grid">
+    <div class="card">
+      <h3 id="t_qH"></h3>
+      <div class="sub" id="t_qS" style="margin:0 0 8px"></div>
+      <div class="toggles" id="qtoggles"></div>
+      <div class="pipe" id="pipe"></div>
+    </div>
+    <div class="card">
+      <h3 id="t_pH"></h3>
+      <div class="sub" id="t_pS" style="margin:0 0 8px"></div>
+      <div id="provs"></div>
+    </div>
+  </div>
+
+  <h2 id="t_mH"></h2>
+  <div class="sub" id="t_mS"></div>
+  <div class="mx" id="matrix"></div>
+
+  <div class="note" id="t_note"></div>
+  <footer id="t_foot"></footer>
+</div>
+
+<script>
+let lang="fa";
+const L=(fa,en)=>lang==="fa"?fa:en;
+
+// خط قرنطینه با شرط‌های زنده
+let q={source:true, provenance:true, consent:true, dup:false, human:true};
+function tg(k){ q[k]=!q[k]; render(); }
+
+// providerها با چرخهٔ تأیید
+const PROV=[
+  {n:"Outscraper", st:"disc"},{n:"Apify", st:"disc"},
+  {n:"ZoomInfo (B2B)", st:"enr"},{n:"Lusha", st:"no"},
+  {n:"WhatsApp Cloud API", st:"out"},{n:"ContactOut", st:"rej"}
+];
+const STMAP={
+  disc:["s-disc",L("تأیید کشف","Discovery"),L("کشف","discover")],
+  enr:["s-enr",L("تأیید غنی‌سازی","Enrichment"),L("کشف+غنی‌سازی","discover+enrich")],
+  out:["s-out",L("تأیید ارتباط","Outreach"),L("کشف+غنی‌سازی+ارتباط","all")],
+  no:["s-no",L("بررسی‌نشده","Not reviewed"),"—"],
+  rej:["s-rej",L("رد","Rejected"),"—"]
+};
+
+const MATRIX=[
+  [L("اطلاعات عمومی کسب‌وکار از منبع مجاز","Public business info (allowed source)"),"y"],
+  [L("تحلیل تجمیعی Review/Comment","Aggregate review/comment analysis"),"y"],
+  [L("Apify Actor تأییدشده","Approved Apify Actor"),"c"],
+  [L("Outscraper برای دادهٔ عمومی تجاری","Outscraper for public business data"),"c"],
+  [L("Lead Magnet و فرم رضایت","Lead magnet + consent form"),"y"],
+  [L("WhatsApp Business Cloud API","WhatsApp Business Cloud API"),"y"],
+  [L("ZoomInfo/Bombora B2B Intent","ZoomInfo/Bombora B2B intent"),"c"],
+  [L("Tracked link و Landing Page","Tracked link + landing page"),"y"],
+  [L("استخراج پروفایل شخصی Reviewکننده‌ها","Scraping reviewer personal profiles"),"n"],
+  [L("تبدیل Gmail شخصی به شماره","Personal Gmail → phone"),"n"],
+  [L("دیتای مخفی اپراتور/شخص ثالث","Covert operator/3rd-party data"),"n"],
+  [L("شناسایی فرد از Cookie بدون رضایت","Identify person from cookie w/o consent"),"n"],
+  [L("دورزدن CAPTCHA/محدودیت پلتفرم","Bypass CAPTCHA/platform limits"),"n"],
+  [L("ارسال انبوه برای شبیه‌سازی انسان","Bulk send to fake human activity"),"n"]
+];
+
+function render(){
+  document.documentElement.lang=lang;document.documentElement.dir=lang==="fa"?"rtl":"ltr";
+  const set=(id,fa,en)=>{const e=document.getElementById(id);if(e)e.textContent=L(fa,en);};
+  set("t_title","حاکمیت جذب","Acquisition governance");
+  set("t_sub","کشف تقاضا و دادهٔ تجاریِ مجاز · قابلِ ممیزی و رضایت‌محور","Allowed demand/business data · auditable, consent-first");
+  set("t_qH","خط قرنطینهٔ Import","Import quarantine pipeline");
+  set("t_qS","هیچ رکوردی مستقیم وارد صف نمی‌شود. بدونِ منبع/منشأ/رضایت → قرنطینه.","No record enters the queue directly. Missing source/provenance/consent → quarantined.");
+  set("t_pH","چرخهٔ تأیید Provider","Provider approval lifecycle");
+  set("t_pS","Discovery ⊂ Enrichment ⊂ Outreach. هیچ Providerی بدونِ تأییدِ متناسب استفاده نمی‌شود.","Discovery ⊂ enrichment ⊂ outreach. No provider used without matching approval.");
+  set("t_mH","ماتریس تصمیم ابزارها","Tool decision matrix");
+  set("t_mS","چه چیزی قابلِ پیاده‌سازی، چه چیزی مشروط، چه چیزی رد.","What's implementable, conditional, or rejected.");
+
+  // toggles
+  const tt=document.getElementById("qtoggles");
+  const labels={source:L("منبع معتبر","Source valid"),provenance:L("منشأ","Provenance"),
+    consent:L("مدرک رضایت","Consent proof"),dup:L("تکراری","Duplicate"),human:L("بازبینی انسانی","Human review")};
+  tt.innerHTML=Object.keys(q).map(k=>`<span class="tg ${q[k]?"on":""}" onclick="tg('${k}')">${labels[k]}${k==="dup"?"":""}</span>`).join("");
+
+  // pipeline evaluation (همان منطق QuarantineService)
+  const steps=[];
+  const push=(name,ok,stop,rs)=>steps.push({name,ok,stop,rs});
+  let stopped=false;
+  push(L("Imported","Imported"),true,false);
+  if(!stopped){ const ok=q.source; push(L("اعتبارسنجی منبع","Source validation"),ok,!ok,ok?"":"Rejected"); if(!ok)stopped=true; }
+  if(!stopped){ const ok=q.provenance; push(L("اعتبارسنجی منشأ","Provenance validation"),ok,!ok,ok?"":"Quarantined"); if(!ok)stopped=true; }
+  if(!stopped){ const ok=q.consent; push(L("طبقه‌بندی رضایت","Consent classification"),ok,!ok,ok?"":"Quarantined"); if(!ok)stopped=true; }
+  if(!stopped){ const ok=!q.dup; push(L("حذف تکراری","Deduplication"),ok,!ok,ok?"":"Rejected"); if(!ok)stopped=true; }
+  if(!stopped){ const ok=q.human; push(L("بازبینی انسانی","Human review"),ok,!ok,ok?"":"Quarantined"); if(!ok)stopped=true; }
+  if(!stopped) push(L("Approved — ارسال فعال","Approved — sending enabled"),true,false,"Approved");
+
+  document.getElementById("pipe").innerHTML=steps.map(s=>
+    `<div class="stage ${s.stop?"stop":(s.ok?"pass":"")}"><span class="d"></span>${s.name}
+      ${s.rs?`<small>${s.rs}</small>`:""}</div>`).join("");
+
+  // providers
+  document.getElementById("provs").innerHTML=PROV.map(p=>{
+    const m=STMAP[p.st];
+    return `<div class="prov"><span>${p.n}<span class="caps">${m[2]}</span></span><span class="state ${m[0]}">${m[1]}</span></div>`;
+  }).join("");
+
+  // matrix
+  document.getElementById("matrix").innerHTML=MATRIX.map(r=>{
+    const t=r[1], lbl=t==="y"?L("قابل پیاده‌سازی","Implementable"):t==="c"?L("مشروط به بررسی","Conditional"):L("تأیید نمی‌شود","Rejected");
+    return `<div class="mxr"><span>${r[0]}</span><span class="tag ${t}">${lbl}</span></div>`;
+  }).join("");
+
+  document.getElementById("t_note").innerHTML=L(
+    "<b>گاردِ داده:</b> دادهٔ سازمانی (B2B) مجاز؛ دادهٔ شخصی کنترلِ سخت دارد. تبدیلِ خودکارِ Gmail شخصی به تلفن، کشفِ تماس از Cookie/هویتِ دیجیتال، و دادهٔ مخفیِ اپراتور مجاز نیست. Intent فقط در سطحِ شرکت/تجمیعی معنا دارد، نه مدرکِ قطعیِ علاقهٔ یک فرد. حتی «شمارهٔ با مجوزِ مخابرات» جای رضایتِ خودِ مخاطب برای همان شرکت/هدف/کانال را نمی‌گیرد.",
+    "<b>Data guard:</b> company (B2B) data allowed; personal data tightly controlled. Auto Gmail→phone, contact discovery from cookie/digital identity, and covert operator data are not allowed. Intent is company-level/aggregate only, never proof of one person's interest. Even a \u201ccarrier-licensed number\u201d doesn't replace the recipient's own consent for this company/purpose/channel.");
+
+  document.getElementById("t_foot").textContent=L(
+    "صفحاتِ جدیدِ جذب: Source Discovery، Reviews & Intent، Website/Community Sources، Provider Imports، Quarantine، Lead Magnets، Landing Pages، Tracked Links، Audience Planning، Source Compliance. سیگنالِ قصد فقط Qualification می‌سازد؛ کلیک/Review رضایتِ بازاریابی نیست.",
+    "New acquisition pages: Source Discovery, Reviews & Intent, Website/Community Sources, Provider Imports, Quarantine, Lead Magnets, Landing Pages, Tracked Links, Audience Planning, Source Compliance. Intent signals only qualify; a click/review is not marketing consent.");
+}
+function toggleLang(){lang=lang==="fa"?"en":"fa";render();}
+render();
+</script>
+</body>
+</html>

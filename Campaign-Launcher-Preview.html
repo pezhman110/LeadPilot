@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Launcher کمپین — LeadPilot</title>
+<style>
+:root{
+  --void:#07060D;--panel:#0F0C1A;--panel2:#151024;--edge:rgba(214,178,102,.16);
+  --gold:#D6B266;--amber:#F2CE80;--ink:#ECE7F5;--dim:#9C93B4;
+  --ok:#54B78A;--warn:#E4A94C;--bad:#E1685E;--info:#5BB6D6;--idle:#4A4460;
+}
+*{box-sizing:border-box}
+body{margin:0;background:
+  radial-gradient(900px 500px at 82% -10%,#1a1330 0%,transparent 60%),
+  radial-gradient(700px 500px at 0% 110%,#12182b 0%,transparent 55%),var(--void);
+  color:var(--ink);font-family:'Vazirmatn','Segoe UI',Tahoma,sans-serif;line-height:1.6;min-height:100vh}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px 60px}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 0;border-bottom:1px solid var(--edge)}
+.mark{display:flex;align-items:center;gap:12px}
+.logo{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,var(--gold),var(--amber));box-shadow:0 0 24px rgba(214,178,102,.4)}
+.mark b{font-size:15px}.mark small{display:block;color:var(--dim);font-weight:400;font-size:12px}
+.lang{background:transparent;border:1px solid var(--edge);color:var(--ink);border-radius:9px;padding:7px 13px;cursor:pointer;font-family:inherit;font-size:12px}
+h2{color:var(--amber);font-size:13px;letter-spacing:1.5px;text-transform:uppercase;margin:22px 0 4px;font-weight:600}
+.sub{color:var(--dim);font-size:12.5px;margin-bottom:12px}
+.ctx{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.cbtn{background:var(--panel);border:1px solid var(--edge);border-radius:13px;padding:16px 14px;cursor:pointer;text-align:center;transition:.15s}
+.cbtn:hover{border-color:rgba(214,178,102,.5)}
+.cbtn.on{border-color:var(--gold);background:rgba(214,178,102,.06)}
+.cbtn .ic{font-size:22px}
+.cbtn b{display:block;font-size:13px;margin-top:6px}
+.form{background:var(--panel);border:1px solid var(--edge);border-radius:13px;padding:16px;margin-top:12px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:8px}
+.fld{flex:1;min-width:130px}
+.fld label{display:block;font-size:11px;color:var(--dim);margin-bottom:4px}
+.fld input{width:100%;background:var(--panel2);border:1px solid var(--edge);color:var(--ink);border-radius:8px;padding:9px 11px;font-family:inherit;font-size:12.5px}
+.go{background:linear-gradient(135deg,var(--gold),var(--amber));color:#231703;border:0;border-radius:9px;padding:11px 22px;font-weight:700;cursor:pointer;font-family:inherit;font-size:13.5px}
+.plan{margin-top:12px;display:none}
+.plan.show{display:block}
+.capbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.cap{background:var(--panel2);border:1px solid var(--edge);border-radius:10px;padding:9px 13px;font-size:12px}
+.cap b{color:var(--amber)}
+.steps{display:flex;flex-direction:column;gap:6px}
+.step{display:flex;align-items:center;gap:10px;font-size:12.5px;padding:8px 12px;border-radius:9px;border:1px solid var(--edge);background:var(--panel2)}
+.step.tactic{border-color:rgba(214,178,102,.35)}
+.n{width:22px;height:22px;border-radius:7px;background:rgba(214,178,102,.12);color:var(--gold);display:grid;place-items:center;font-size:11px;font-weight:700;flex:0 0 22px}
+.step small{color:var(--dim);margin-inline-start:auto;font-size:11px}
+.rej{background:var(--panel);border:1px solid rgba(225,104,94,.3);border-radius:13px;padding:14px 16px;margin-top:14px}
+.rej h3{margin:0 0 8px;font-size:13px;color:var(--bad)}
+.rej ul{margin:0;padding-inline-start:18px}.rej li{font-size:11.5px;color:var(--dim);margin:3px 0}
+.note{font-size:11.5px;color:var(--dim);border:1px dashed var(--edge);border-radius:11px;padding:11px 15px;margin-top:14px}
+.note b{color:var(--amber)}
+footer{color:var(--dim);font-size:11px;border-top:1px solid var(--edge);margin-top:26px;padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark"><div class="logo"></div>
+      <div><b id="t_title"></b><small id="t_sub"></small></div></div>
+    <button class="lang" onclick="toggleLang()">EN / فارسی</button>
+  </header>
+
+  <h2 id="t_cH"></h2>
+  <div class="sub" id="t_cS"></div>
+  <div class="ctx" id="ctx"></div>
+
+  <div class="form">
+    <div class="row">
+      <div class="fld"><label id="t_name"></label><input id="f_name" /></div>
+      <div class="fld"><label id="t_city"></label><input id="f_city" value="Dubai" /></div>
+      <div class="fld"><label id="t_budget"></label><input id="f_budget" type="number" value="1000" /></div>
+      <div class="fld"><label id="t_pct"></label><input id="f_pct" type="number" value="1" step="0.5" /></div>
+      <button class="go" id="t_go" onclick="launch()"></button>
+    </div>
+    <div class="plan" id="plan">
+      <div class="capbar" id="capbar"></div>
+      <div class="steps" id="steps"></div>
+    </div>
+  </div>
+
+  <div class="rej">
+    <h3 id="t_rH"></h3>
+    <ul id="rejlist"></ul>
+  </div>
+
+  <div class="note" id="t_note"></div>
+  <footer id="t_foot"></footer>
+</div>
+
+<script>
+let lang="fa";
+const L=(fa,en)=>lang==="fa"?fa:en;
+let ctx="Hotels";
+
+const CTX=[
+  {k:"Hotels", fa:"هتل‌ها", en:"Hotels", ic:"🏨"},
+  {k:"ResidentialTowers", fa:"برج‌های مسکونی", en:"Towers", ic:"🏢"},
+  {k:"Malls", fa:"مال‌ها", en:"Malls", ic:"🛍️"},
+  {k:"Investment", fa:"سرمایه‌گذاری", en:"Investment", ic:"📈"},
+  {k:"Salon", fa:"سالن", en:"Salon", ic:"💄"},
+  {k:"HomeService", fa:"هوم‌سرویس", en:"Home service", ic:"🧹"}
+];
+const TACTICS={
+  Hotels:["ContextualAds","QrNfcOptIn","PartnerReferral","LandingLeadForm"],
+  ResidentialTowers:["PartnerReferral","CommunityTransparentPost","QrNfcOptIn","SurveyLotteryOptIn","LandingLeadForm"],
+  Malls:["ContextualAds","LoyaltyRewardCoupon","QrNfcOptIn","LandingLeadForm"],
+  Investment:["B2bCompanyEnrichment","CommunityTransparentPost","ContextualAds","LandingLeadForm"],
+  Salon:["ContextualAds","CommunityTransparentPost","SurveyLotteryOptIn","LandingLeadForm"],
+  HomeService:["PartnerReferral","CommunityTransparentPost","NewsletterCtaAd","LandingLeadForm"]
+};
+const TNOTE={
+  ContextualAds:L("تبلیغِ مرتبط، نه شناساییِ بازدیدکننده","Relevant ads, not visitor ID"),
+  QrNfcOptIn:L("QR/NFC → لندینگ → opt-in","QR/NFC → landing → opt-in"),
+  LoyaltyRewardCoupon:L("برنامهٔ وفاداریِ رسمی","Official loyalty program"),
+  SurveyLotteryOptIn:L("ارائهٔ داوطلبانه با پاداش","Voluntary submit + reward"),
+  PartnerReferral:L("ارجاعِ رسمی با رضایت","Official referral w/ consent"),
+  CommunityTransparentPost:L("پاسخِ شفافِ کارشناس","Transparent specialist reply"),
+  NewsletterCtaAd:L("فضای CTA اجاره‌ای","Rented CTA slot"),
+  B2bCompanyEnrichment:L("سطحِ شرکت + رضایت","Company-level + consent"),
+  LandingLeadForm:L("فرمِ رضایتِ رسمی","Official consent form")
+};
+const PIPE=[
+  ["SelectApprovedSources",L("منابعِ تأییدشدهٔ زمینه/شهر","Approved sources for context/city")],
+  ["RunTacticsToLanding",L("همهٔ تاکتیک‌ها → لندینگِ رسمی","All tactics → official landing")],
+  ["VoluntaryOptIn",L("مخاطب خودش تماس را می‌دهد","Person voluntarily submits contact")],
+  ["CaptureConsentEvidence",L("ثبتِ مدرکِ رضایت","Archive consent evidence")],
+  ["AssignToSpecialist",L("تخصیص به کارشناس","Assign to specialist")],
+  ["SyncToCrm",L("همگام‌سازی HubSpot/Zoho","Sync to HubSpot/Zoho")]
+];
+
+function setCtx(k){ ctx=k; document.getElementById("plan").classList.remove("show"); render(); }
+
+function launch(){
+  const budget=parseFloat(document.getElementById("f_budget").value)||0;
+  const pct=parseFloat(document.getElementById("f_pct").value)||0;
+  const cap=Math.round(budget*(pct/100)*100)/100;
+  const city=document.getElementById("f_city").value||"Dubai";
+  document.getElementById("capbar").innerHTML=
+    `<span class="cap">${L("زمینه","Context")}: <b>${lang==="fa"?CTX.find(c=>c.k===ctx).fa:CTX.find(c=>c.k===ctx).en}</b></span>`+
+    `<span class="cap">${L("شهر","City")}: <b>${city}</b></span>`+
+    `<span class="cap">${L("بودجه","Budget")}: <b>$${budget.toLocaleString()}</b></span>`+
+    `<span class="cap">${L("سقف هر لید","Max/lead")}: <b>$${cap.toLocaleString()} (${pct}%)</b></span>`;
+  let order=1;
+  const tac=TACTICS[ctx].map(t=>
+    `<div class="step tactic"><span class="n">${order++}</span>${t}<small>${TNOTE[t]}</small></div>`).join("");
+  const pipe=PIPE.map(p=>
+    `<div class="step"><span class="n">${order++}</span>${p[1]}</div>`).join("");
+  document.getElementById("steps").innerHTML=tac+pipe;
+  document.getElementById("plan").classList.add("show");
+}
+
+function render(){
+  document.documentElement.lang=lang;document.documentElement.dir=lang==="fa"?"rtl":"ltr";
+  const set=(id,fa,en)=>{const e=document.getElementById(id);if(e)e.textContent=L(fa,en);};
+  set("t_title","Launcher کمپین","Campaign launcher");
+  set("t_sub","یک دکمه per زمینه · نام+شهر+سقفِ هزینه · کلِ فرآیند پشتِ دکمه","One button per context · name+city+cost cap · full process behind the button");
+  set("t_cH","زمینه را انتخاب کنید","Pick a context");
+  set("t_cS","به‌جای ۷۰ فرمِ تودرتو: یک دکمه بزنید، سه‌چیز بدهید، بقیه خودکار.","Instead of 70 nested forms: one button, three inputs, the rest is automatic.");
+  set("t_name",L("نام کمپین (مثلاً هتل فلان)","Campaign name (e.g. Hotel X)"));
+  set("t_city",L("شهر","City"));
+  set("t_budget",L("بودجهٔ ماهانه ($)","Monthly budget ($)"));
+  set("t_pct",L("سقف هر لید (٪)","Max per lead (%)"));
+  set("t_go",L("راه‌اندازی","Launch"));
+  set("t_rH",L("پشتِ هیچ دکمه‌ای اجرا نمی‌شود","Never runs behind any button"));
+
+  document.getElementById("ctx").innerHTML=CTX.map(c=>
+    `<div class="cbtn ${ctx===c.k?"on":""}" onclick="setCtx('${c.k}')">
+      <div class="ic">${c.ic}</div><b>${lang==="fa"?c.fa:c.en}</b></div>`).join("");
+
+  const rej=[
+    L("استخراجِ جیمیل/موبایلِ بازدیدکنندهٔ ناشناس","Extracting anonymous visitors' Gmail/phone"),
+    L("دادهٔ شخصیِ WiFi Captive Portal","WiFi captive-portal personal data"),
+    L("اسکرپِ تماس از Geotag/نظراتِ گوگل‌مپ + تفکیک جنسیتی","Geotag/Maps-review contact scraping + gender segmentation"),
+    L("افزونهٔ مرورگر برای اسکرپِ ایمیلِ مالکین","Browser-extension owner-email scraping"),
+    L("Whois برای تماسِ سرد","Whois harvesting for cold outreach"),
+    L("Overlay/Sniply روی سایتِ دیگران","Sniply/overlay on others' sites")
+  ];
+  document.getElementById("rejlist").innerHTML=rej.map(x=>`<li>${x}</li>`).join("");
+
+  document.getElementById("t_note").innerHTML=L(
+    "این Launcher نسخهٔ قانونیِ «۳۵ روش» است: QR/NFC، لندینگ، کوپنِ وفاداری، نظرسنجی/قرعه‌کشیِ داوطلبانه، مشارکتِ رسمی، تبلیغِ Contextual، و enrichmentِ سطحِ شرکت. هر مسیر به <b>opt-in داوطلبانه + مدرکِ رضایت</b> ختم می‌شود، بعد CRM. تاکتیک‌های مخفی حتی در enum تعریف نشده‌اند تا از پشتِ هیچ دکمه‌ای اجرا نشوند.",
+    "This launcher is the lawful version of the \u201c35 methods\u201d: QR/NFC, landing, loyalty coupon, voluntary survey/lottery, official partnership, contextual ads, and company-level enrichment. Every path ends in <b>voluntary opt-in + consent evidence</b>, then CRM. Covert tactics aren't even defined in the enum, so none can run behind any button.");
+
+  document.getElementById("t_foot").textContent=L(
+    "افزودنِ زمینه یا تاکتیکِ جدید = یک ردیف در همان Blueprint؛ دکمه‌ها ساده می‌مانند و به ۷۰–۹۰ فرمِ تودرتو نمی‌رسیم. سقفِ هزینه (مثلِ «حداکثر ۱٪») پشتِ دکمه به‌صورتِ BudgetGuard اعمال می‌شود.",
+    "Adding a context or tactic = one row in the same blueprint; buttons stay simple and never sprawl into 70–90 nested forms. The cost cap (e.g. \u201cmax 1%\u201d) is enforced behind the button as a budget guard.");
+}
+function toggleLang(){lang=lang==="fa"?"en":"fa";render();}
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LeadPilot — پیش‌نمایش داشبورد</title>
+<style>
+:root{
+  --bg:#0A0612; --bg2:#130B24; --panel:rgba(255,255,255,.045);
+  --gold:#E6B35A; --amber:#F0C674; --line:rgba(230,179,90,.18);
+  --text:#EDE7F6; --muted:#9E97B5; --safe:#4CAF7D; --review:#E0A94C; --err:#E4736B; --draft:#8A83A0;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Vazirmatn','Segoe UI',Tahoma,sans-serif;
+  background:radial-gradient(1200px 700px at 72% -12%,var(--bg2),var(--bg)) fixed;
+  color:var(--text);min-height:100vh}
+.app{max-width:1120px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 26px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:15px}
+.logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--gold),var(--amber));box-shadow:0 0 26px rgba(230,179,90,.45)}
+.lang{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:7px 13px;cursor:pointer;font-size:13px}
+.lang:hover{border-color:var(--gold)}
+nav{display:flex;gap:8px;flex-wrap:wrap;padding:14px 26px;border-bottom:1px solid var(--line)}
+.tab{color:var(--muted);padding:8px 15px;border-radius:10px;border:1px solid transparent;cursor:pointer;font-size:14px;transition:.18s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--text);border-color:var(--gold);background:linear-gradient(135deg,rgba(230,179,90,.15),transparent)}
+main{padding:22px 26px 44px}
+footer{padding:16px 26px;color:var(--muted);font-size:12px;border-top:1px solid var(--line)}
+h2{color:var(--amber);font-weight:700;margin:0 0 6px}
+.muted{color:var(--muted);font-size:13px;line-height:1.7}
+.err{color:var(--err);font-size:13px;margin-inline-start:6px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:17px;margin:10px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:13px;margin-top:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+button{background:linear-gradient(135deg,var(--gold),var(--amber));color:#20140a;border:0;border-radius:10px;padding:9px 17px;font-weight:700;cursor:pointer;font-size:13px}
+button.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+button.ghost:hover{border-color:var(--gold)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.pill{font-size:12px;padding:3px 11px;border-radius:999px;border:1px solid var(--line)}
+.safe{color:var(--safe);border-color:var(--safe)}
+.review{color:var(--review);border-color:var(--review)}
+.draft{color:var(--draft)}
+.scores{display:flex;gap:8px;flex-wrap:wrap;margin:9px 0;font-size:12px}
+.scores span{background:rgba(255,255,255,.05);padding:4px 10px;border-radius:8px}
+.kv{font-size:13px;color:var(--muted);margin:3px 0}
+label{font-size:13px;color:var(--muted);display:block;margin:8px 0 4px}
+input,select{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--text);
+  border-radius:9px;padding:8px 11px;font-family:inherit;font-size:13px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chip{display:inline-block;font-size:12px;padding:4px 10px;border-radius:8px;border:1px solid var(--line);margin:3px 3px 0 0;cursor:pointer;color:var(--muted)}
+.chip.on{color:#20140a;background:linear-gradient(135deg,var(--gold),var(--amber));border-color:transparent;font-weight:700}
+.ctrlpoint{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.step{flex:1;min-width:180px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:12px;padding:12px}
+.step b{color:var(--amber)}
+.demo-note{font-size:12px;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:8px 12px;margin-top:8px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand"><div class="logo"></div><span id="title"></span></div>
+    <button class="lang" onclick="toggleLang()">EN / فا</button>
+  </header>
+
+  <nav id="tabs"></nav>
+
+  <main id="main"></main>
+
+  <footer id="footer"></footer>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+//  پیش‌نمایش سمتِ کلاینت. همان قواعد دامنهٔ C# اینجا در JS بازتاب یافته‌اند
+//  تا ماشین‌وضعیت و invariantها زنده دیده شوند. داده در حافظه است (بدون سرور).
+// ─────────────────────────────────────────────────────────────
+const ALLOWED_LANGS = ["ar","en","fa","hi","fr","ru"];
+let lang = "fa", tab = "projects", err = null;
+let projects = [];
+
+const T = {
+  brand:["رادار غربال اتصالات — LeadPilot","LeadPilot — Connections Screening Radar"],
+  footer:["فاز ۱ — هستهٔ پروژه‌ها (تا نقطهٔ کنترل) · پیش‌نمایش HTML","Phase 1 — Project core (to control point) · HTML preview"],
+  tabs:{
+    projects:["پروژه‌ها","Projects"], search:["جست‌وجوی زنده","Live Search"],
+    signals:["مخاطبان و سیگنال‌ها","Signals"], consent:["رضایت و غربالگری","Consent"],
+    crm:["CRM و فروش","CRM & Sales"], campaigns:["کمپین‌ها","Campaigns"],
+    partners:["شرکا و امور مالی","Partners & Finance"]
+  },
+  intro:["یک موتور، ۱۶ پروژه. پروژهٔ اول: سرمایه‌گذار و خریدار شخصی کسب‌وکار در دبی.",
+         "One engine, 16 projects. First project: Personal Business Investor & Buyer — Dubai."],
+  seed:["ثبت پروژهٔ اول (دبی)","Create first project (Dubai)"],
+  newp:["ساخت پروژهٔ دلخواه","Create custom project"],
+  activate:["فعال‌سازی","Activate"], pause:["توقف","Pause"],
+  none:["هنوز پروژه‌ای نیست.","No projects yet."],
+  type:["نوع","Type"], personal:["شخصی","Personal"], corporate:["شرکتی","Corporate"],
+  langs:["زبان‌ها","Languages"], geo:["جغرافیا","Geography"], budget:["حداقل بودجه","Min budget"],
+  ctrl:["نقطهٔ کنترل","Control point"],
+  ctrlDesc:["در نسخهٔ واقعی این سه باید سبز شوند تا به فاز دوم برویم:",
+            "In the real build these three must go green before phase 2:"],
+  c1:["Build موفق","Build succeeded"], c2:["Migration و ساخت جدول‌ها","Migration & tables created"],
+  c3:["ثبت پروژهٔ اول در PostgreSQL","First project saved in PostgreSQL"],
+  soon:["این بخش در فازهای بعد ساخته می‌شود (جست‌وجو، رضایت، AI، CRM، شرکا). درزهای دامنه از فاز ۱ آماده‌اند.",
+        "Built in later phases (search, consent, AI, CRM, partners). Domain seams ready from phase 1."],
+  formName:["نام فارسی","Persian name"], formEn:["نام انگلیسی","English name"],
+  formMin:["حداقل امتیاز سیگنال","Min signal score"], formMgr:["امتیاز مدیر","Manager score"],
+  formSales:["امتیاز فروش","Sales score"], formBudget:["حداقل بودجه (AED)","Min budget (AED)"],
+  formLangs:["زبان‌ها (کلیک برای انتخاب)","Languages (click to toggle)"],
+  save:["ثبت","Save"], cancel:["انصراف","Cancel"],
+  demo:["نمونهٔ زنده: قواعد دامنه واقعی‌اند — نام خالی، امتیاز >۱۰۰، یا فروش < مدیر رد می‌شود؛ Draft مستقیم Pause نمی‌شود؛ بدون جغرافیا فعال نمی‌شود.",
+        "Live demo: real domain rules — empty name, score >100, or sales < manager are rejected; Draft can't pause; can't activate without geography."]
+};
+const tr = k => T[k][lang==="fa"?0:1];
+
+// ── مدل پروژه (بازتابِ Project.cs) ──
+function makeProject(o){
+  if(!o.persianName || !o.persianName.trim()) throw msg("نام فارسی پروژه الزامی است.","Persian name is required.");
+  if(!o.englishName || !o.englishName.trim()) throw msg("نام انگلیسی پروژه الزامی است.","English name is required.");
+  validateScores(o.minimumSignalScore,o.managerReviewScore,o.salesAssignmentScore);
+  const p = {
+    id: crypto.randomUUID(),
+    persianName:o.persianName.trim(), englishName:o.englishName.trim(),
+    customerType:o.customerType, status:"Draft",
+    minimumBudgetAed:o.minimumBudgetAed ?? null,
+    minimumSignalScore:o.minimumSignalScore, managerReviewScore:o.managerReviewScore,
+    salesAssignmentScore:o.salesAssignmentScore,
+    languages:[], geographies:[]
+  };
+  (o.languages||[]).forEach(c=>addLanguage(p,c));
+  (o.geographies||[]).forEach(g=>p.geographies.push(g));
+  return p;
+}
+function validateScores(min,mgr,sales){
+  for(const [v,n] of [[min,"سیگنال/signal"],[mgr,"مدیر/manager"],[sales,"فروش/sales"]])
+    if(v<0||v>100) throw msg(`امتیاز ${n.split("/")[0]} باید بین ۰ تا ۱۰۰ باشد.`,`${n.split("/")[1]} score must be 0..100.`);
+  if(mgr<min) throw msg("امتیاز مدیر نباید کمتر از حداقل سیگنال باشد.","Manager score can't be below minimum signal.");
+  if(sales<mgr) throw msg("امتیاز فروش نباید کمتر از امتیاز مدیر باشد.","Sales score can't be below manager score.");
+}
+function addLanguage(p,code){
+  const c=(code||"").trim().toLowerCase();
+  if(!ALLOWED_LANGS.includes(c)) throw msg(`زبان ${c} پشتیبانی نمی‌شود.`,`Language ${c} is not supported.`);
+  if(p.languages.includes(c)) return; // تکراری ذخیره نشود
+  p.languages.push(c);
+}
+function activate(p){
+  if(!(p.status==="Draft"||p.status==="Paused")) throw msg(`در وضعیت ${p.status} قابل فعال‌سازی نیست.`,`Cannot activate from ${p.status}.`);
+  if(p.geographies.length===0) throw msg("پروژه بدون جغرافیا قابل فعال‌سازی نیست.","Cannot activate without geography.");
+  p.status="Active";
+}
+function pause(p){
+  if(p.status!=="Active") throw msg(`فقط پروژهٔ فعال قابل توقف است (وضعیت: ${p.status}).`,`Only an active project can pause (status: ${p.status}).`);
+  p.status="Paused";
+}
+function msg(fa,en){ return {fa,en}; }
+function showErr(e){ err = e && e.fa ? e[lang==="fa"?"fa":"en"] : (e?.message||String(e)); render(); }
+
+// ── actions ──
+function seedFirst(){
+  err=null;
+  try{
+    projects.unshift(makeProject({
+      persianName:"سرمایه‌گذار و خریدار شخصی کسب‌وکار در دبی",
+      englishName:"Personal Business Investor and Buyer",
+      customerType:1, minimumBudgetAed:500000,
+      minimumSignalScore:75, managerReviewScore:90, salesAssignmentScore:97,
+      languages:["ar","en","fa","hi","fr","ru"],
+      geographies:[{countryCode:"AE",city:"Dubai",priority:1}]
+    }));
+  }catch(e){ showErr(e); return; }
+  render();
+}
+function doActivate(id){ err=null; try{ activate(projects.find(p=>p.id===id)); }catch(e){ showErr(e); return;} render(); }
+function doPause(id){ err=null; try{ pause(projects.find(p=>p.id===id)); }catch(e){ showErr(e); return;} render(); }
+
+// ── custom project form ──
+let formOpen=false, formLangs=["fa","en"];
+function openForm(){ formOpen=true; err=null; render(); }
+function closeForm(){ formOpen=false; err=null; render(); }
+function toggleFormLang(c){ formLangs.includes(c)?formLangs=formLangs.filter(x=>x!==c):formLangs.push(c); render(); }
+function submitForm(){
+  err=null;
+  const g=document.getElementById("f_country").value.trim();
+  try{
+    const p=makeProject({
+      persianName:document.getElementById("f_fa").value,
+      englishName:document.getElementById("f_en").value,
+      customerType:parseInt(document.getElementById("f_type").value),
+      minimumBudgetAed:parseFloat(document.getElementById("f_budget").value)||null,
+      minimumSignalScore:parseInt(document.getElementById("f_min").value),
+      managerReviewScore:parseInt(document.getElementById("f_mgr").value),
+      salesAssignmentScore:parseInt(document.getElementById("f_sales").value),
+      languages:[...formLangs],
+      geographies: g ? [{countryCode:g,city:document.getElementById("f_city").value.trim()||null,priority:1}] : []
+    });
+    projects.unshift(p); formOpen=false; formLangs=["fa","en"];
+  }catch(e){ showErr(e); return; }
+  render();
+}
+
+// ── rendering ──
+function statusClass(s){ return s==="Active"?"safe":s==="Paused"?"review":"draft"; }
+function render(){
+  document.documentElement.lang=lang;
+  document.documentElement.dir = lang==="fa"?"rtl":"ltr";
+  document.getElementById("title").textContent=tr("brand");
+  document.getElementById("footer").textContent=tr("footer");
+
+  // tabs
+  const nav=document.getElementById("tabs"); nav.innerHTML="";
+  Object.keys(T.tabs).forEach(k=>{
+    const d=document.createElement("div");
+    d.className="tab"+(k===tab?" active":""); d.textContent=T.tabs[k][lang==="fa"?0:1];
+    d.onclick=()=>{tab=k;err=null;render();};
+    nav.appendChild(d);
+  });
+
+  const m=document.getElementById("main");
+  if(tab!=="projects"){
+    m.innerHTML=`<h2>${T.tabs[tab][lang==="fa"?0:1]}</h2><p class="muted">${tr("soon")}</p>`;
+    return;
+  }
+
+  // projects page
+  let html=`<h2>${T.tabs.projects[lang==="fa"?0:1]}</h2>`;
+  html+=`<p class="muted">${tr("intro")}</p>`;
+  html+=`<div class="demo-note">${tr("demo")}</div>`;
+  html+=`<div class="row">
+      <button onclick="seedFirst()">${tr("seed")}</button>
+      <button class="ghost" onclick="openForm()">${tr("newp")}</button>
+      ${err?`<span class="err">✗ ${err}</span>`:``}
+    </div>`;
+
+  // control point panel
+  const hasProject=projects.length>0;
+  const hasSaved=hasProject;
+  html+=`<div class="card"><b style="color:var(--amber)">${tr("ctrl")}</b>
+    <div class="muted">${tr("ctrlDesc")}</div>
+    <div class="ctrlpoint">
+      <div class="step"><b>1)</b> ${tr("c1")} <span class="pill review" style="float:${lang==="fa"?"left":"right"}">pending</span></div>
+      <div class="step"><b>2)</b> ${tr("c2")} <span class="pill review" style="float:${lang==="fa"?"left":"right"}">pending</span></div>
+      <div class="step"><b>3)</b> ${tr("c3")} <span class="pill ${hasSaved?"safe":"review"}" style="float:${lang==="fa"?"left":"right"}">${hasSaved?"✓ ok (preview)":"pending"}</span></div>
+    </div></div>`;
+
+  // form
+  if(formOpen){
+    html+=`<div class="card">
+      <div class="two">
+        <div><label>${tr("formName")}</label><input id="f_fa" placeholder="مثلاً سرمایه‌گذار شخصی"></div>
+        <div><label>${tr("formEn")}</label><input id="f_en" placeholder="e.g. Personal Investor"></div>
+      </div>
+      <div class="two">
+        <div><label>${tr("type")}</label>
+          <select id="f_type"><option value="1">${tr("personal")}</option><option value="2">${tr("corporate")}</option></select></div>
+        <div><label>${tr("formBudget")}</label><input id="f_budget" type="number" value="500000"></div>
+      </div>
+      <div class="two">
+        <div><label>${tr("formMin")}</label><input id="f_min" type="number" value="75"></div>
+        <div><label>${tr("formMgr")}</label><input id="f_mgr" type="number" value="90"></div>
+      </div>
+      <div class="two">
+        <div><label>${tr("formSales")}</label><input id="f_sales" type="number" value="97"></div>
+        <div></div>
+      </div>
+      <div class="two">
+        <div><label>${lang==="fa"?"کد کشور":"Country code"}</label><input id="f_country" value="AE"></div>
+        <div><label>${lang==="fa"?"شهر":"City"}</label><input id="f_city" value="Dubai"></div>
+      </div>
+      <label>${tr("formLangs")}</label>
+      <div>${ALLOWED_LANGS.map(c=>`<span class="chip ${formLangs.includes(c)?"on":""}" onclick="toggleFormLang('${c}')">${c}</span>`).join("")}</div>
+      <div class="row">
+        <button onclick="submitForm()">${tr("save")}</button>
+        <button class="ghost" onclick="closeForm()">${tr("cancel")}</button>
+      </div>
+    </div>`;
+  }
+
+  // list
+  if(projects.length===0){
+    html+=`<p class="muted">${tr("none")}</p>`;
+  }else{
+    html+=`<div class="grid">`;
+    projects.forEach(p=>{
+      html+=`<div class="card">
+        <div class="top">
+          <b>${lang==="fa"?p.persianName:p.englishName}</b>
+          <span class="pill ${statusClass(p.status)}">${p.status}</span>
+        </div>
+        <div class="kv">${tr("type")}: ${p.customerType===1?tr("personal"):tr("corporate")}</div>
+        <div class="kv">${tr("langs")}: ${p.languages.join(", ")||"—"}</div>
+        <div class="kv">${tr("geo")}: ${p.geographies.map(g=>g.city||g.countryCode).join(", ")||"—"}</div>
+        <div class="kv">${tr("budget")}: ${p.minimumBudgetAed?Number(p.minimumBudgetAed).toLocaleString():"—"} AED</div>
+        <div class="scores"><span>Signal ≥ ${p.minimumSignalScore}</span><span>Manager ≥ ${p.managerReviewScore}</span><span>Sales ≥ ${p.salesAssignmentScore}</span></div>
+        <div class="row">
+          <button onclick="doActivate('${p.id}')" ${p.status==="Active"?"disabled":""}>${tr("activate")}</button>
+          <button class="ghost" onclick="doPause('${p.id}')" ${p.status!=="Active"?"disabled":""}>${tr("pause")}</button>
+        </div>
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+  m.innerHTML=html;
+}
+function toggleLang(){ lang=lang==="fa"?"en":"fa"; err=null; render(); }
+render();
+</script>
+</body>
+</html>

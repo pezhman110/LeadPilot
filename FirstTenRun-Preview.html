@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>اجرای آزمایشی ۱۰ نتیجهٔ اول — LeadPilot</title>
+<style>
+:root{--bg:#0A0612;--bg2:#130B24;--panel:rgba(255,255,255,.045);--gold:#E6B35A;--amber:#F0C674;
+--line:rgba(230,179,90,.18);--text:#EDE7F6;--muted:#9E97B5;--safe:#4CAF7D;--paid:#E0A94C;--block:#E4736B;--proc:#5AC8E6}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Vazirmatn','Segoe UI',Tahoma,sans-serif;background:radial-gradient(1300px 800px at 72% -14%,var(--bg2),var(--bg)) fixed;color:var(--text);min-height:100vh;line-height:1.55}
+.app{max-width:1000px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px;font-weight:700}
+.logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--gold),var(--amber));box-shadow:0 0 26px rgba(230,179,90,.45)}
+.brand small{display:block;color:var(--muted);font-weight:400;font-size:12px}
+.lang{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:7px 13px;cursor:pointer}
+main{padding:20px 24px 46px}
+h2{color:var(--amber);margin:0 0 4px}h3{color:var(--amber);font-size:14px;margin:16px 0 8px}
+.muted{color:var(--muted);font-size:13px}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin:14px 0}
+.controls label{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.controls input,.controls select{background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:7px 9px;font-family:inherit;font-size:13px;width:120px}
+button{background:linear-gradient(135deg,var(--gold),var(--amber));color:#20140a;border:0;border-radius:10px;padding:11px 20px;font-weight:700;cursor:pointer;font-size:14px}
+button:disabled{opacity:.4;cursor:not-allowed}
+.pipeline{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
+.stage{flex:1;min-width:120px;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:10px;text-align:center;font-size:12px;opacity:.4;transition:.3s}
+.stage.active{opacity:1;border-color:var(--safe)}
+.stage b{display:block;color:var(--amber);font-size:13px;margin-bottom:3px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:12px 0}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:10px 12px;text-align:center}
+.stat .v{font-size:22px;font-weight:700;color:var(--amber)}
+.stat .l{font-size:11px;color:var(--muted)}
+.result{border:1px solid var(--line);border-radius:11px;padding:10px 13px;margin-top:7px;background:rgba(255,255,255,.02);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.result .num{font-family:monospace;font-size:14px;color:var(--safe)}
+.result .src{font-size:11px;color:var(--muted)}
+.badge{font-size:10px;padding:2px 7px;border-radius:20px;border:1px solid}
+.b-free{color:var(--safe);border-color:var(--safe)}
+.b-paid{color:var(--paid);border-color:var(--paid)}
+.banner{border-radius:12px;padding:12px 15px;margin:12px 0;font-weight:700;font-size:14px}
+.b-ok{background:rgba(76,175,125,.12);border:1px solid var(--safe);color:var(--safe)}
+.note{font-size:12px;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:10px 13px;margin-top:12px}
+footer{padding:18px 24px;color:var(--muted);font-size:12px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header><div class="brand"><div class="logo"></div>
+    <div><span id="bt"></span><small id="bs"></small></div></div>
+    <button class="lang" onclick="toggleLang()">EN / فا</button></header>
+  <main id="main"></main>
+  <footer id="foot"></footer>
+</div>
+<script>
+let lang="fa";const L=(fa,en)=>lang==="fa"?fa:en;
+let running=false, done=false, target=10, results=[], stats={processed:0,dup:0,invalid:0,cost:0}, stage=0;
+
+function startRun(){
+  target=parseInt(document.getElementById("target").value)||10;
+  running=true; done=false; results=[]; stats={processed:0,dup:0,invalid:0,cost:0}; stage=0;
+  render();
+  // مرحله ۱: سلامت اتصالات
+  step(1,()=>step(2,()=>step(3,()=>runLoop())));
+}
+function step(s,next){ stage=s; render(); setTimeout(next,650); }
+
+function runLoop(){
+  stage=4; render();
+  const timer=setInterval(()=>{
+    if(results.length>=target){ clearInterval(timer); running=false; done=true; stage=5; render(); return; }
+    stats.processed++;
+    const roll=Math.random();
+    if(roll<0.12){ stats.invalid++; render(); return; }        // نامعتبر
+    if(roll<0.22){ stats.dup++; render(); return; }              // تکراری — شمرده نمی‌شود
+    const paid=Math.random()<0.25;
+    if(paid) stats.cost+=2;
+    const num="+9715"+Math.floor(10000000+Math.random()*89999999);
+    const masked=num.slice(0,6)+"****"+num.slice(-2);
+    const srcs=paid?["apollo · https://apollo.io/contact"]:["instagram_lead_ads","linkedin_lead_gen","crm","referral_partner"];
+    const src=srcs[Math.floor(Math.random()*srcs.length)];
+    const score=80+Math.floor(Math.random()*20);
+    results.push({masked,src,paid,score});
+    render();
+  },430);
+}
+
+function render(){
+  document.documentElement.lang=lang;document.documentElement.dir=lang==="fa"?"rtl":"ltr";
+  document.getElementById("bt").textContent=L("اجرای آزمایشی ۱۰ نتیجهٔ اول","First Ten Run — Start Test Run");
+  document.getElementById("bs").textContent=L("مدیر می‌زند → سلامت → کاندید → آبشار رایگان→پولی → Dedup → ManagerOnly → ۱۰ نتیجه → توقف خودکار","manager → health → candidates → free→paid → dedup → ManagerOnly → 10 → auto-stop");
+  document.getElementById("foot").textContent=L(
+    "هر نتیجه منبع و هزینه دارد. تکراری/نامعتبر/بدون‌منبع شمرده نمی‌شود. شمارهٔ کامل رمزنگاری و ManagerOnly است؛ فقط مدیر با Reveal کنترل‌شده (+Audit) می‌بیند. بعد از ۱۰ نتیجه، اجرا خودکار متوقف و Jobهای باقی لغو می‌شود.",
+    "Each result has a source and cost. Duplicate/invalid/no-source not counted. Full number encrypted & ManagerOnly; only manager via controlled Reveal (+audit). After 10, run auto-stops and remaining jobs cancel.");
+  const stages=[
+    L("سلامت اتصالات","Health check"),
+    L("کاندیدها","Candidates"),
+    L("صف (≤۱۰۰)","Queue (≤100)"),
+    L("آبشار + Dedup","Cascade + dedup"),
+    L("پایان","Done")];
+  const m=document.getElementById("main");
+  let h=`<h2>${L("شروع اجرا","Start run")}</h2>
+  <div class="controls">
+    <label>${L("هدف (تعداد نتیجه)","Target")}<input id="target" type="number" value="${target}" min="1" max="100" ${running?"disabled":""}/></label>
+    <label>${L("نوع پروژه","Project type")}<select ${running?"disabled":""}><option>${L("مشتری شخصی (سالن)","Personal (salon)")}</option><option>${L("شرکتی (B2B)","Corporate (B2B)")}</option></select></label>
+    <label>${L("سقف هزینه (AED)","Max cost")}<input type="number" value="50" ${running?"disabled":""}/></label>
+    <div style="align-self:flex-end"><button onclick="startRun()" ${running?"disabled":""}>${running?L("در حال اجرا…","Running…"):L("▶ Start Test Run","▶ Start Test Run")}</button></div>
+  </div>`;
+
+  if(running||done){
+    h+=`<div class="pipeline">`;
+    stages.forEach((s,i)=>{ h+=`<div class="stage ${stage>=i+1?"active":""}"><b>${i+1}</b>${s}</div>`; });
+    h+=`</div>`;
+    h+=`<div class="stats">
+      <div class="stat"><div class="v">${results.length}/${target}</div><div class="l">${L("نتیجهٔ یکتا","Unique results")}</div></div>
+      <div class="stat"><div class="v">${stats.processed}</div><div class="l">${L("کاندید پردازش‌شده","Processed")}</div></div>
+      <div class="stat"><div class="v">${stats.dup}</div><div class="l">${L("تکراری (نادیده)","Duplicates")}</div></div>
+      <div class="stat"><div class="v">${stats.invalid}</div><div class="l">${L("نامعتبر","Invalid")}</div></div>
+      <div class="stat"><div class="v">${stats.cost} AED</div><div class="l">${L("هزینه","Cost")}</div></div>
+    </div>`;
+
+    if(done) h+=`<div class="banner b-ok">${L("✓ به هدف رسید — اجرا خودکار متوقف شد. Jobهای باقی‌مانده لغو شدند.","✓ Target reached — run auto-stopped. Remaining jobs cancelled.")}</div>`;
+
+    if(results.length){
+      h+=`<h3>${L("نتایج (فقط ماسک‌شده)","Results (masked only)")}</h3>`;
+      results.forEach((r,i)=>{
+        h+=`<div class="result">
+          <span class="num">✓ #${i+1} ${r.masked}</span>
+          <span class="src">${r.src} · score ${r.score}</span>
+          <span class="badge ${r.paid?"b-paid":"b-free"}">${r.paid?L("پولی ۲ AED","paid 2 AED"):L("رایگان","free")}</span>
+        </div>`;
+      });
+    }
+    h+=`<div class="note">${L("این‌ها همه از مبنای قانونی‌اند و تا رضایتِ مشتری در وضعیت Hidden/ManagerOnly می‌مانند. «به‌دست‌آوردنِ شماره ≠ اجازهٔ تماس». اولین تماس فقط دعوتِ opt-in است.",
+      "All lawful-basis; stay Hidden/ManagerOnly until consent. 'Obtaining a number ≠ permission to call.' First contact is an opt-in invitation only.")}</div>`;
+  }
+  m.innerHTML=h;
+}
+function toggleLang(){lang=lang==="fa"?"en":"fa";render();}
+render();
+</script>
+</body>
+</html>

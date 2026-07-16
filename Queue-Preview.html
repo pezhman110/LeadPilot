@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>صف پردازش پایدار — LeadPilot</title>
+<style>
+:root{--bg:#0A0612;--bg2:#130B24;--panel:rgba(255,255,255,.045);--gold:#E6B35A;--amber:#F0C674;
+--line:rgba(230,179,90,.18);--text:#EDE7F6;--muted:#9E97B5;--safe:#4CAF7D;--review:#E0A94C;--block:#E4736B;--proc:#5AC8E6}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Vazirmatn','Segoe UI',Tahoma,sans-serif;background:radial-gradient(1300px 800px at 72% -14%,var(--bg2),var(--bg)) fixed;color:var(--text);min-height:100vh;line-height:1.55}
+.app{max-width:1000px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px;font-weight:700}
+.logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--gold),var(--amber));box-shadow:0 0 26px rgba(230,179,90,.45)}
+.brand small{display:block;color:var(--muted);font-weight:400;font-size:12px}
+.lang{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:7px 13px;cursor:pointer}
+main{padding:20px 24px 46px}
+h2{color:var(--amber);margin:0 0 4px}h3{color:var(--amber);font-size:14px;margin:16px 0 8px}
+.muted{color:var(--muted);font-size:13px}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;margin:12px 0}
+button{background:linear-gradient(135deg,var(--gold),var(--amber));color:#20140a;border:0;border-radius:10px;padding:9px 16px;font-weight:700;cursor:pointer;font-size:13px}
+button.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+input{background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--text);border-radius:9px;padding:8px 11px;font-family:inherit;font-size:13px;max-width:110px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin:12px 0}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:12px;text-align:center}
+.kpi b{display:block;font-size:22px}
+.kpi span{font-size:12px;color:var(--muted)}
+.workers{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+.worker{flex:1;min-width:150px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px}
+.worker h4{margin:0 0 6px;font-size:13px;color:var(--amber)}
+.slot{font-size:11px;font-family:monospace;color:var(--proc);padding:2px 0}
+.bar{height:10px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden;margin:8px 0}
+.fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--amber));transition:width .3s}
+.note{font-size:12px;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:9px 13px;margin-top:10px}
+.log{font-family:monospace;font-size:11px;color:var(--muted);max-height:150px;overflow:auto;margin-top:8px;border:1px solid var(--line);border-radius:10px;padding:8px}
+.pending{color:var(--amber)}.processing{color:var(--proc)}.completed{color:var(--safe)}.retry{color:var(--review)}.dead{color:var(--block)}
+footer{padding:18px 24px;color:var(--muted);font-size:12px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header><div class="brand"><div class="logo"></div>
+    <div><span id="bt"></span><small id="bs"></small></div></div>
+    <button class="lang" onclick="toggleLang()">EN / فا</button></header>
+  <main id="main"></main>
+  <footer id="foot"></footer>
+</div>
+<script>
+let lang="fa";const L=(fa,en)=>lang==="fa"?fa:en;
+let state={pending:0,processing:0,completed:0,retry:0,dead:0};
+let workers=[[],[],[]]; // 3 workers, each holds job ids
+let running=false, timer=null, log=[], nextId=1, jobPool=[];
+const CONC=4; // slots per worker
+
+function enqueue(n){ for(let i=0;i<n;i++){ jobPool.push({id:nextId++,attempts:0,status:"pending"}); state.pending++; } addLog(L(`+${n} Job وارد صف شد`,`+${n} jobs enqueued`),"pending"); render(); }
+
+function tick(){
+  // هر Worker از صف برمی‌دارد (claim) تا سقف ظرفیت
+  workers.forEach((w,wi)=>{
+    while(w.length<CONC){
+      const job=jobPool.find(j=>j.status==="pending"||j.status==="retry");
+      if(!job)break;
+      job.status="processing"; job.attempts++;
+      if(job.status==="pending")state.pending--; else state.retry--;
+      // بازحساب: کم‌کردن از منبع درست
+      state.pending=jobPool.filter(j=>j.status==="pending").length;
+      state.retry=jobPool.filter(j=>j.status==="retry").length;
+      state.processing++;
+      w.push(job.id);
+    }
+  });
+  // پردازش: هر job با احتمالی موفق/خطای موقت
+  workers.forEach((w,wi)=>{
+    for(let k=w.length-1;k>=0;k--){
+      const id=w[k]; const job=jobPool.find(j=>j.id===id);
+      const r=Math.random();
+      if(r<0.75){ job.status="completed"; state.completed++; state.processing--; w.splice(k,1); }
+      else if(r<0.92){ // خطای موقت → retry (یا dead letter اگر سقف)
+        if(job.attempts>=3){ job.status="dead"; state.dead++; addLog(L(`Job#${id} → Dead Letter`,`Job#${id} → Dead Letter`),"dead"); }
+        else{ job.status="retry"; state.retry++; }
+        state.processing--; w.splice(k,1);
+      }
+      // else: هنوز در حال پردازش (اجاره ادامه دارد)
+    }
+  });
+  render();
+}
+function addLog(t,cls){ log.unshift({t,cls}); if(log.length>40)log.pop(); }
+function start(){ if(running)return; running=true; timer=setInterval(tick,600); render(); }
+function stop(){ running=false; clearInterval(timer); render(); }
+function stress(){ enqueue(200); addLog(L("۲۰۰ Job یکجا — صف قفل نمی‌کند (پایدار)","200 jobs at once — queue won't lock (durable)"),"processing"); }
+
+function render(){
+  document.documentElement.lang=lang;document.documentElement.dir=lang==="fa"?"rtl":"ltr";
+  document.getElementById("bt").textContent=L("صف پردازشِ پایدار","Durable processing queue");
+  document.getElementById("bs").textContent=L("چند Worker · Lease · Retry · Dead Letter · بدون قفل","multi-worker · lease · retry · dead letter · no lock");
+  document.getElementById("foot").textContent=L(
+    "صف در دیتابیس پایدار است؛ با Restart سرور از دست نمی‌رود. چند Worker با FOR UPDATE SKIP LOCKED یک Job را دوبار برنمی‌دارند. بعد از ۲۰۰ Job قفل نمی‌کند.",
+    "Queue is durable in DB; survives restart. Multiple workers with FOR UPDATE SKIP LOCKED never claim a job twice. No lock after 200 jobs.");
+  const m=document.getElementById("main");
+  let h=`<h2>${L("صف پردازشِ پایدار","Durable queue")}</h2>
+  <p class="muted">${L("این همان جوابِ «بعد از ۲۰۰ شماره قفل نکند» است: Job در دیتابیس پایدار، چند Worker مستقل، بازیابیِ Jobِ رهاشده.",
+    "This answers 'won't lock after 200': durable DB jobs, independent workers, abandoned-job recovery.")}</p>
+
+  <div class="controls">
+    <button onclick="enqueue(20)">${L("+۲۰ Job","+20 jobs")}</button>
+    <button class="ghost" onclick="stress()">${L("تست فشار: +۲۰۰","Stress: +200")}</button>
+    ${running?`<button class="ghost" onclick="stop()">${L("توقف Workerها","Stop workers")}</button>`:`<button onclick="start()">${L("شروع Workerها","Start workers")}</button>`}
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><b class="pending">${state.pending}</b><span>${L("در انتظار","Pending")}</span></div>
+    <div class="kpi"><b class="processing">${state.processing}</b><span>${L("در حال پردازش","Processing")}</span></div>
+    <div class="kpi"><b class="retry">${state.retry}</b><span>${L("Retry","Retry")}</span></div>
+    <div class="kpi"><b class="completed">${state.completed}</b><span>${L("تکمیل","Completed")}</span></div>
+    <div class="kpi"><b class="dead">${state.dead}</b><span>${L("Dead Letter","Dead Letter")}</span></div>
+  </div>
+
+  <h3>${L("Workerها (هر کدام ۴ پردازش هم‌زمان)","Workers (4 concurrent each)")}</h3>
+  <div class="workers">`;
+  workers.forEach((w,i)=>{
+    h+=`<div class="worker"><h4>Worker ${i+1} <span class="muted">${w.length}/${CONC}</span></h4>
+      <div class="bar"><span class="fill" style="width:${w.length/CONC*100}%"></span></div>
+      ${w.map(id=>`<div class="slot">▶ Job#${id}</div>`).join("")||`<div class="muted" style="font-size:12px">${L("بی‌کار","idle")}</div>`}
+    </div>`;
+  });
+  h+=`</div>
+  <div class="note">${L("Payload صف فقط شناسهٔ پرونده است، نه شماره/ایمیل خام. اولویت Critical (نمره ۹۷+) قبل از Normal برداشته می‌شود.",
+    "Queue payload holds only record IDs, never raw phone/email. Critical priority (score 97+) is claimed before Normal.")}</div>
+  <div class="log">${log.map(l=>`<div class="${l.cls}">${l.t}</div>`).join("")||L("لاگ خالی","empty log")}</div>`;
+  m.innerHTML=h;
+}
+function toggleLang(){lang=lang==="fa"?"en":"fa";render();}
+enqueue(20); render();
+</script>
+</body>
+</html>

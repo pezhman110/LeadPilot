@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LeadPilot — پیش‌نمایش جست‌وجوی زنده (فاز ۲)</title>
+<style>
+:root{
+  --bg:#0A0612; --bg2:#130B24; --panel:rgba(255,255,255,.045);
+  --gold:#E6B35A; --amber:#F0C674; --line:rgba(230,179,90,.18);
+  --text:#EDE7F6; --muted:#9E97B5; --safe:#4CAF7D; --review:#E0A94C; --block:#E4736B;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Vazirmatn','Segoe UI',Tahoma,sans-serif;
+  background:radial-gradient(1300px 800px at 72% -14%,var(--bg2),var(--bg)) fixed;color:var(--text);min-height:100vh;line-height:1.7}
+.app{max-width:1080px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px;font-weight:700}
+.logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--gold),var(--amber));box-shadow:0 0 26px rgba(230,179,90,.45)}
+.brand small{display:block;color:var(--muted);font-weight:400;font-size:12px}
+.lang{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:7px 13px;cursor:pointer}
+main{padding:22px 24px 44px}
+h2{color:var(--amber);margin:0 0 6px}
+.muted{color:var(--muted);font-size:13px}
+.note{font-size:12px;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:9px 13px;margin:10px 0}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:12px 0}
+button{background:linear-gradient(135deg,var(--gold),var(--amber));color:#20140a;border:0;border-radius:10px;padding:9px 17px;font-weight:700;cursor:pointer;font-size:13px}
+button.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.stat{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+.stat div{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:12px;padding:8px 13px;min-width:92px;text-align:center}
+.stat b{display:block;font-size:19px;color:var(--amber)}
+.stat span{font-size:12px;color:var(--muted)}
+.sig{border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px;background:rgba(255,255,255,.02)}
+.sig .top{display:flex;gap:7px;flex-wrap:wrap}
+.pill{font-size:12px;padding:3px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.safe{color:var(--safe);border-color:var(--safe)}
+.review{color:var(--review);border-color:var(--review)}
+.demo{color:var(--gold);border-color:var(--gold)}
+.blocked{color:var(--block);border-color:var(--block)}
+.orig{margin-top:8px}
+.fa{color:var(--muted);font-size:13px;margin-top:4px}
+.scores{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;font-size:12px}
+.scores span{background:rgba(255,255,255,.05);padding:4px 10px;border-radius:8px}
+.url{color:var(--amber);font-size:12px;word-break:break-all}
+.reasons{margin:8px 0 0;padding-inline-start:18px;font-size:12px;color:var(--muted)}
+.blocklist{opacity:.7}
+footer{padding:18px 24px;color:var(--muted);font-size:12px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand"><div class="logo"></div>
+      <div><span id="bt"></span><small id="bs"></small></div>
+    </div>
+    <button class="lang" onclick="toggleLang()">EN / فا</button>
+  </header>
+  <main id="main"></main>
+  <footer id="foot"></footer>
+</div>
+
+<script>
+// پیش‌نمایش سمتِ کلاینتِ موتور جست‌وجو — بازتابِ منطق C# (QueryBuilder + Gateway + Scoring + dedup).
+let lang="fa", running=false;
+let stats={q:0,f:0,d:0,b:0,p:0}, results=[], blockedItems=[];
+const L=(fa,en)=>lang==="fa"?fa:en;
+
+// ── دادهٔ نمونه (مثل DemoConnector) ──
+const SAMPLES=[
+  ["Looking to buy a profitable business in Dubai, I have around 1 million AED, prefer managed/passive income.","PublicApi"],
+  ["دنبال خرید بیزینس فعال با درآمد ماهانه در دبی هستم، بودجه حدود ۵۰۰ هزار درهم.","PublicApi"],
+  ["أبحث عن استثمار في دبي، لدي رأس مال ويهمني مشروع مع إدارة جاهزة.","Event"],
+  ["We are a corporate VC fund. Contact us via our About Us page.","PublicApi"],
+  ["NRI investor Dubai, want to buy a salon business, golden visa, AED 750,000.","LeadForm"],
+  ["private investor looking for operating company in the UAE, half a million dirham.","OptIn"],
+  ["private investor looking for operating company in the UAE, half a million dirham.","OptIn"] // تکراری عمدی
+];
+const LANGS=["ar","en","fa","hi","fr","ru"];
+const ALLOWED=["PublicApi","LeadForm","Event","PartnerFeed","OptIn","DemoTest"];
+
+// ── منطق (بازتاب C#) ──
+function detectLang(t){
+  if(/[\u0900-\u097F]/.test(t))return"Hindi";
+  if(/[\u0400-\u04FF]/.test(t))return"Russian";
+  if(/[\u0600-\u06FF]/.test(t))return /[پچژگکی]/.test(t)?"Persian":"Arabic";
+  if(/[a-zA-Z]/.test(t))return"English";
+  return"Unknown";
+}
+function compliance(text,src){
+  if(!ALLOWED.includes(src))return{status:"Blocked",reason:"منبع غیرمجاز",score:0};
+  const l=text.toLowerCase();
+  for(const m of["contact us","about us","درباره ما","من نحن"])
+    if(l.includes(m))return{status:"Blocked",reason:`نشانهٔ دایرکتوری/شرکتی: «${m}»`,score:10};
+  if(["LeadForm","OptIn","PartnerFeed"].includes(src))return{status:"Safe",reason:"منبع رضایت‌محور",score:100};
+  return{status:"NeedsReview",reason:"عمومیِ مجاز؛ فقط Opt-in",score:85};
+}
+const PERSONAL=["private investor","personal investor","i have capital","سرمایه گذار شخصی","لدي رأس مال"];
+const INTENT=["looking to invest","buy business","passive income","خرید بیزینس","درآمد ماهانه","أبحث عن استثمار","شراء مشروع"];
+const BUDGET=["500,000","500k","1 million","aed","half a million","million dirham","۵۰۰ هزار درهم","نیم میلیون","مليون درهم","رأس مال"];
+const GEO=["dubai","uae","emirates","دبی","دبي","الإمارات"];
+const CORP=["corporate","vc fund","venture capital","fund","broker","agency"];
+function has(t,arr,out){for(const w of arr)if(t.includes(w.toLowerCase())){out.push(w);return w;}return null;}
+function score(text,src,comp){
+  const t=text.toLowerCase(),ev=[],reasons=[];
+  let intent=0,fit=0;
+  if(has(t,PERSONAL,ev)){intent+=30;reasons.push("سرمایه‌گذار شخصی (+30)");}
+  if(has(t,INTENT,ev)){intent+=25;reasons.push("نیت مستقیم (+25)");}
+  const bm=has(t,BUDGET,ev); if(bm){intent+=25;reasons.push(`بودجه: «${bm}» (+25)`);}
+  if(has(t,CORP,ev)){intent-=30;reasons.push("نشانهٔ شرکتی/منفی (−30)");}
+  const gm=has(t,GEO,ev); if(gm){fit+=40;reasons.push(`مرتبط با دبی (+40)`);}
+  if(bm){fit+=20;reasons.push("سازگار با بودجه (+20)");}
+  const clamp=v=>Math.max(0,Math.min(100,v));
+  intent=clamp(intent);fit=clamp(fit);
+  const compS=comp.score;
+  reasons.push(`Compliance: ${comp.reason} (${compS})`);
+  const srcQ=({LeadForm:100,OptIn:100,PartnerFeed:90,Event:70,PublicApi:55,DemoTest:40})[src]||20;
+  const final=Math.round(intent*0.45+fit*0.30+srcQ*0.15+100*0.10);
+  let summary=[]; if(has(t,PERSONAL,[])||has(t,INTENT,[]))summary.push("نیت شخصی"); if(bm)summary.push("بودجه"); if(gm)summary.push("دبی");
+  return{intent,fit,compliance:compS,final,reasons,summaryFa:summary.length?"خلاصه: "+summary.join("، "):"عمومی"};
+}
+
+async function run(){
+  running=true; stats={q:0,f:0,d:0,b:0,p:0}; results=[]; blockedItems=[]; render();
+  const seen=new Set();
+  // برای هر زبان یک کوئری (۶ کوئری) × نمونه‌ها؛ اینجا برای سادگی یک‌بار روی نمونه‌ها اجرا می‌کنیم و کوئری‌ها را می‌شماریم.
+  stats.q=LANGS.length; render();
+  for(const [text,src] of SAMPLES){
+    await new Promise(r=>setTimeout(r,180));
+    stats.f++;
+    const key=`https|${text.trim().toLowerCase()}`;
+    if(seen.has(key)){stats.d++; render(); continue;}
+    seen.add(key);
+    const comp=compliance(text,src);
+    const url="https://demo.local/"+Math.random().toString(36).slice(2,10);
+    if(comp.status==="Blocked"){
+      stats.b++; blockedItems.unshift({text,src,reason:comp.reason,url}); render(); continue;
+    }
+    const sc=score(text,src,comp);
+    stats.p++;
+    results.unshift({text,src,url,lang:detectLang(text),comp,sc});
+    render();
+  }
+  running=false; render();
+}
+
+function render(){
+  document.documentElement.lang=lang; document.documentElement.dir=lang==="fa"?"rtl":"ltr";
+  document.getElementById("bt").textContent=L("جست‌وجوی زنده — LeadPilot","Live Search — LeadPilot");
+  document.getElementById("bs").textContent=L("پیش‌نمایش فاز ۲ · موتور شش‌زبانه","Phase 2 preview · six-language engine");
+  document.getElementById("foot").textContent=L(
+    "پیش‌نمایش سمتِ کلاینت با همان منطق موتور (QueryBuilder + Compliance Gateway + امتیازدهی سه‌گانه + dedup). در نسخهٔ واقعی نتایج زنده از SignalR می‌آیند.",
+    "Client-side preview using the same engine logic (query builder + compliance gateway + three-score scoring + dedup). Real build streams live via SignalR.");
+
+  const m=document.getElementById("main");
+  let h=`<h2>${L("جست‌وجوی زنده","Live Search")}</h2>
+    <p class="muted">${L("هر سیگنال URL/منبع/زبان/سه امتیاز و دلیل دارد. تکراری‌ها ادغام و منابع غیرمجاز مسدود می‌شوند.",
+      "Each signal has URL/source/language/three scores and reasons. Duplicates merged, disallowed sources blocked.")}</p>
+    <div class="note">${L("پروژه: سرمایه‌گذار شخصی — دبی · زبان‌ها: ar en fa hi fr ru",
+      "Project: Personal Investor — Dubai · Languages: ar en fa hi fr ru")}</div>
+    <div class="row"><button onclick="run()" ${running?"disabled":""}>${running?L("در حال اجرا…","Running…"):L("اجرای جست‌وجو","Run search")}</button></div>
+    <div class="stat">
+      <div><span>${L("کوئری","Queries")}</span><b>${stats.q}</b></div>
+      <div><span>${L("یافت‌شده","Found")}</span><b>${stats.f}</b></div>
+      <div><span>${L("تکراری","Dupes")}</span><b>${stats.d}</b></div>
+      <div><span>${L("مسدود","Blocked")}</span><b>${stats.b}</b></div>
+      <div><span>${L("پردازش‌شده","Processed")}</span><b>${stats.p}</b></div>
+    </div>`;
+
+  results.forEach(r=>{
+    h+=`<div class="sig">
+      <div class="top">
+        <span class="pill ${r.comp.status==="Safe"?"safe":"review"}">${r.comp.status}</span>
+        <span class="pill">${r.src}</span><span class="pill">${r.lang}</span>
+        <span class="pill demo">DEMO</span>
+      </div>
+      <div class="orig">${r.text}</div>
+      <div class="fa">${r.sc.summaryFa}</div>
+      <div class="scores"><span>Intent ${r.sc.intent}</span><span>Fit ${r.sc.fit}</span><span>Compliance ${r.sc.compliance}</span><span>Final <b>${r.sc.final}</b></span></div>
+      <div class="url">${r.url}</div>
+      <ul class="reasons">${r.sc.reasons.map(x=>`<li>${x}</li>`).join("")}</ul>
+    </div>`;
+  });
+
+  if(blockedItems.length){
+    h+=`<div class="note" style="margin-top:16px">${L("مسدودشده‌ها (شفافیت):","Blocked (transparency):")}</div>`;
+    blockedItems.forEach(b=>{
+      h+=`<div class="sig blocklist">
+        <div class="top"><span class="pill blocked">Blocked</span><span class="pill">${b.src}</span></div>
+        <div class="orig">${b.text}</div>
+        <div class="fa">${b.reason}</div>
+      </div>`;
+    });
+  }
+  m.innerHTML=h;
+}
+function toggleLang(){lang=lang==="fa"?"en":"fa";render();}
+render();
+</script>
+</body>
+</html>

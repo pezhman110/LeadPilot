@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>میزکار فروشنده — LeadPilot</title>
+<style>
+:root{
+  --void:#07060D;--panel:#0F0C1A;--panel2:#151024;--edge:rgba(214,178,102,.16);
+  --gold:#D6B266;--amber:#F2CE80;--ink:#ECE7F5;--dim:#9C93B4;
+  --ok:#54B78A;--warn:#E4A94C;--bad:#E1685E;--info:#5BB6D6;--idle:#4A4460;
+}
+*{box-sizing:border-box}
+body{margin:0;background:
+  radial-gradient(900px 500px at 82% -10%,#1a1330 0%,transparent 60%),
+  radial-gradient(700px 500px at 0% 110%,#12182b 0%,transparent 55%),var(--void);
+  color:var(--ink);font-family:'Vazirmatn','Segoe UI',Tahoma,sans-serif;line-height:1.6;min-height:100vh}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px 60px}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 0;border-bottom:1px solid var(--edge)}
+.mark{display:flex;align-items:center;gap:12px}
+.logo{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,var(--gold),var(--amber));box-shadow:0 0 24px rgba(214,178,102,.4)}
+.mark b{font-size:15px}.mark small{display:block;color:var(--dim);font-weight:400;font-size:12px}
+.lang{background:transparent;border:1px solid var(--edge);color:var(--ink);border-radius:9px;padding:7px 13px;cursor:pointer;font-family:inherit;font-size:12px}
+h2{color:var(--amber);font-size:13px;letter-spacing:1.5px;text-transform:uppercase;margin:22px 0 4px;font-weight:600}
+.sub{color:var(--dim);font-size:12.5px;margin-bottom:12px}
+.who-agent{display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--edge);border-radius:13px;padding:12px 15px;margin:8px 0}
+.who-agent .av{width:40px;height:40px;border-radius:50%;background:rgba(214,178,102,.1);border:1px solid var(--edge);display:grid;place-items:center;color:var(--gold)}
+.who-agent b{font-size:14px}.who-agent small{color:var(--dim);font-size:11.5px}
+.pill{font-size:10.5px;padding:2px 9px;border-radius:20px;border:1px solid var(--edge);color:var(--amber);margin-inline-end:4px}
+.seg{display:inline-flex;border:1px solid var(--edge);border-radius:9px;overflow:hidden;margin-inline-start:auto}
+.seg button{background:transparent;border:0;color:var(--dim);padding:6px 12px;cursor:pointer;font-family:inherit;font-size:12px}
+.seg button.on{background:rgba(214,178,102,.14);color:var(--amber);font-weight:700}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px}
+.chk{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--dim);background:var(--panel);border:1px solid var(--edge);border-radius:9px;padding:7px 11px;cursor:pointer}
+.chk.on{color:var(--amber);border-color:rgba(214,178,102,.4)}
+.card{background:var(--panel);border:1px solid var(--edge);border-radius:13px;padding:6px 14px;margin-bottom:10px}
+.lead{display:grid;grid-template-columns:34px 1fr auto;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.lead:last-child{border-bottom:0}
+.av{width:32px;height:32px;border-radius:50%;background:rgba(214,178,102,.1);border:1px solid var(--edge);display:grid;place-items:center;color:var(--gold);font-size:12px}
+.lead b{font-size:13.5px}.lead small{color:var(--dim);font-size:11px}
+.attrs span{font-size:10px;padding:1px 7px;border-radius:10px;margin-inline-end:4px;background:rgba(255,255,255,.05);color:var(--dim)}
+.attrs span.on{background:rgba(84,183,138,.12);color:var(--ok)}
+.mini{background:transparent;border:1px solid var(--edge);color:var(--amber);border-radius:8px;padding:6px 11px;cursor:pointer;font-family:inherit;font-size:11.5px}
+.lock{font-size:10px;color:var(--bad)}
+.chain{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:4px 0}
+.node{display:flex;align-items:center;gap:5px;font-size:11.5px;padding:5px 10px;border-radius:9px;border:1px solid var(--edge);background:var(--panel)}
+.node .d{width:7px;height:7px;border-radius:50%;background:var(--idle)}
+.node.ok .d{background:var(--ok);box-shadow:0 0 7px var(--ok)}
+.node.fail{opacity:.55}.node.fail .d{background:var(--bad)}
+.arrow{color:var(--dim);font-size:12px}
+.chanrow{margin:10px 0}
+.chanrow b{font-size:12.5px;color:var(--ink);display:block;margin-bottom:4px}
+.note{font-size:11.5px;color:var(--dim);border:1px dashed var(--edge);border-radius:11px;padding:11px 15px;margin-top:14px}
+.note b{color:var(--amber)}
+.msg{font-size:11.5px;margin-top:6px}
+.msg.ok{color:var(--ok)}.msg.bad{color:var(--bad)}
+code{background:rgba(255,255,255,.05);padding:1px 6px;border-radius:5px;color:var(--amber);font-size:11px}
+footer{color:var(--dim);font-size:11px;border-top:1px solid var(--edge);margin-top:28px;padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark"><div class="logo"></div>
+      <div><b id="t_title"></b><small id="t_sub"></small></div></div>
+    <button class="lang" onclick="toggleLang()">EN / فارسی</button>
+  </header>
+
+  <div class="who-agent" id="agentbar"></div>
+
+  <h2 id="t_bankH"></h2>
+  <div class="sub" id="t_bankS"></div>
+  <div class="filters" id="filters"></div>
+  <div class="card" id="bank"></div>
+
+  <h2 id="t_chainH"></h2>
+  <div class="sub" id="t_chainS"></div>
+  <div class="card" id="chains"></div>
+
+  <div class="note" id="t_note"></div>
+  <footer id="t_foot"></footer>
+</div>
+
+<script>
+let lang="fa";
+const L=(fa,en)=>lang==="fa"?fa:en;
+
+// دو فروشنده با خدمات و بانکِ متفاوت
+const AGENTS={
+  a1:{name:"فروشنده ۱", nameEn:"Agent 1", service:"SALON", serviceFa:"سالن زیبایی", serviceEn:"Beauty salon",
+      channels:["Instagram","WhatsApp"], cap:120, auto:false},
+  a2:{name:"فروشنده ۲", nameEn:"Agent 2", service:"INVESTMENT", serviceFa:"سرمایه‌گذاری", serviceEn:"Investment",
+      channels:["WhatsApp","Email","Telegram"], cap:80, auto:true}
+};
+let agent="a1";
+// بانکِ هر فروشنده، بر اساسِ خدمتِ خودش — شماره‌ها بین دو فروشنده مشترک نیستند (قفلِ انحصاری)
+const BANK={
+  a1:[
+    {n:"Rana K.", acc:true, em:false, ph:true, ch:"Instagram"},
+    {n:"Lena T.", acc:true, em:true,  ph:true, ch:"Instagram"},
+    {n:"Dima S.", acc:true, em:false, ph:true, ch:"WhatsApp"}
+  ],
+  a2:[
+    {n:"Omar A.", acc:true, em:true,  ph:true, ch:"WhatsApp"},
+    {n:"Yusuf B.",acc:false,em:true,  ph:true, ch:"Email"},
+    {n:"Karim H.",acc:true, em:true,  ph:false,ch:"Telegram"}
+  ]
+};
+let filt={acc:false, em:false, ph:false};
+
+// زنجیرهٔ Failover هر کانال (اولویت‌دار). وقتی از یکی نشد، از بعدی.
+const CHAINS={
+  Instagram:[["ManyChat",true],["Respond.io",true],["NovoChat",true]],
+  WhatsApp:[["WATI",false],["WhatsApp Cloud API",true],["Respond.io",true],["Zoho",true]],
+  Email:[["Zoho",true],["Pabbly",true]],
+  Telegram:[["ManyChat",true],["NovoChat",true]]
+};
+
+function pick(a){agent=a;render();}
+function toggle(k){filt[k]=!filt[k];render();}
+function send(i){
+  const box=document.getElementById("m_"+i);
+  if(box){box.className="msg ok";box.textContent=L("✓ ارسال شد (پس از بررسی رضایت و از طریقِ اولین ابزارِ سالمِ زنجیره).",
+    "✓ Sent (after consent check, via the first healthy provider in the chain).");}
+}
+
+function render(){
+  document.documentElement.lang=lang;document.documentElement.dir=lang==="fa"?"rtl":"ltr";
+  const q=(id,fa,en)=>{const e=document.getElementById(id);if(e)e.textContent=L(fa,en);};
+  q("t_title","میزکار فروشنده","Agent workspace");
+  q("t_sub","بانک و ابزارِ اختصاصیِ هر فروشنده · قفلِ انحصاریِ شماره","Per-agent bank and tools · exclusive contact lock");
+  q("t_bankH","بانکِ من","My bank");
+  q("t_bankS","فقط شماره‌های خدمتِ من که رضایت داده‌اند. بازیابی بر اساسِ ویژگی. هر شماره فقط به یک فروشنده قفل است.",
+    "Only consented contacts for my service. Retrieve by attribute. Each contact locked to one agent.");
+  q("t_chainH","زنجیرهٔ ابزارها (Failover)","Provider chain (failover)");
+  q("t_chainS","برای هر کانال، ابزارها به‌ترتیبِ اولویت. وقتی از یکی نشد، خودکار از بعدی ارسال می‌شود.",
+    "Per channel, providers by priority. If one fails, it falls over to the next automatically.");
+
+  // agent switcher
+  const bar=document.getElementById("agentbar");
+  const ag=AGENTS[agent];
+  bar.innerHTML=`<div class="av">${(lang==="fa"?ag.name:ag.nameEn)[0]}</div>
+    <div><b>${lang==="fa"?ag.name:ag.nameEn}</b><br>
+      <small>${L("خدمت","service")}: ${lang==="fa"?ag.serviceFa:ag.serviceEn} · ${L("سقف روزانه","daily cap")}: ${ag.cap} · ${ag.auto?L("ارسال خودکار مجاز","auto allowed"):L("فقط دستی/کمک‌یار","manual only")}</small>
+      <div style="margin-top:5px">${ag.channels.map(c=>`<span class="pill">${c}</span>`).join("")}</div></div>
+    <span class="seg">
+      <button class="${agent==="a1"?"on":""}" onclick="pick('a1')">${L("فروشنده ۱","Agent 1")}</button>
+      <button class="${agent==="a2"?"on":""}" onclick="pick('a2')">${L("فروشنده ۲","Agent 2")}</button></span>`;
+
+  // filters
+  const fl=document.getElementById("filters");
+  fl.innerHTML=`
+    <div class="chk ${filt.acc?"on":""}" onclick="toggle('acc')"><span>${filt.acc?"☑":"☐"}</span>${L("دارای اکانت","Has account")}</div>
+    <div class="chk ${filt.em?"on":""}" onclick="toggle('em')"><span>${filt.em?"☑":"☐"}</span>${L("دارای ایمیل","Has email")}</div>
+    <div class="chk ${filt.ph?"on":""}" onclick="toggle('ph')"><span>${filt.ph?"☑":"☐"}</span>${L("دارای تلفن","Has phone")}</div>`;
+
+  // bank
+  const rows=BANK[agent].filter(r=>(!filt.acc||r.acc)&&(!filt.em||r.em)&&(!filt.ph||r.ph));
+  const bank=document.getElementById("bank");
+  bank.innerHTML = rows.length? rows.map((r,i)=>`
+    <div class="lead">
+      <div class="av">${r.n[0]}</div>
+      <div><b>${r.n}</b> <span class="lock">🔒 ${L("قفل به من","locked to me")}</span><br>
+        <small>${r.ch}</small>
+        <div class="attrs" style="margin-top:4px">
+          <span class="${r.acc?"on":""}">${L("اکانت","account")}</span>
+          <span class="${r.em?"on":""}">${L("ایمیل","email")}</span>
+          <span class="${r.ph?"on":""}">${L("تلفن","phone")}</span></div>
+        <div class="msg" id="m_${i}"></div>
+      </div>
+      <button class="mini" onclick="send(${i})">${L("ارسال پیام","Send")}</button>
+    </div>`).join("")
+    : `<div style="color:var(--dim);padding:12px 0">${L("موردی با این ویژگی‌ها نیست.","No contacts match these attributes.")}</div>`;
+
+  // chains — only channels this agent has
+  const ch=document.getElementById("chains");
+  ch.innerHTML=ag.channels.map(cn=>{
+    const chain=CHAINS[cn]||[];
+    let firstOk=chain.findIndex(x=>x[1]);
+    const nodes=chain.map((x,idx)=>{
+      const [name,ok]=x;
+      const cls = ok ? (idx===firstOk?"node ok":"node") : "node fail";
+      return `<span class="${cls}"><span class="d"></span>${name}${!ok?" ✗":(idx===firstOk?" ✓":"")}</span>`;
+    }).join('<span class="arrow">→</span>');
+    return `<div class="chanrow"><b>${cn}</b><div class="chain">${nodes}</div></div>`;
+  }).join("");
+
+  document.getElementById("t_note").innerHTML=L(
+    "<b>قفلِ انحصاری:</b> هر شماره در هر لحظه فقط به یک فروشنده تخصیصِ فعال دارد؛ پس یک شماره در دو جا استفاده نمی‌شود. پس از ارسال به CRM، تخصیص آزاد می‌شود (سابقه می‌ماند) و فروشنده می‌تواند بانکش را بر اساسِ «دارای اکانت/ایمیل/تلفن» دوباره بازیابی کند. ارسال همچنان فقط با رضایتِ کانال و بدونِ opt-out.",
+    "<b>Exclusive lock:</b> each contact has one active assignment at a time, so no contact is used in two places. After CRM push, the assignment is released (history kept) and the agent can re-retrieve their bank by has-account/has-email/has-phone. Sending still requires channel consent and no opt-out.");
+
+  document.getElementById("t_foot").textContent=L(
+    "ابزارهای Omnichannel (ManyChat، Respond.io، WATI، WhatsApp Cloud/Pro، Zoho، NovoChat، Pabbly) پشتِ هر کانال به‌ترتیبِ اولویت قرار می‌گیرند و Failover می‌شوند. اگر در یک سوشیال تلفن/ایمیل پیدا نشد، بر اساسِ منابعِ مجاز به کانال‌های دیگر می‌رویم و در نهایت به دعوتِ opt-in هدایت می‌کنیم — بدونِ scraping اکانتِ شخصی.",
+    "Omnichannel tools (ManyChat, Respond.io, WATI, WhatsApp Cloud/Pro, Zoho, NovoChat, Pabbly) sit behind each channel by priority and fail over. If phone/email isn't found on one social, we try other channels via allowed sources and ultimately route to opt-in — no personal-account scraping.");
+}
+function toggleLang(){lang=lang==="fa"?"en":"fa";render();}
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>گزارش مدیریتی — رادار غربال اتصالات</title>
+<style>
+:root{
+  --bg:#0A0612;--bg2:#130B24;--panel:rgba(255,255,255,.045);
+  --gold:#E6B35A;--amber:#F0C674;--line:rgba(230,179,90,.18);
+  --text:#EDE7F6;--muted:#9E97B5;--safe:#4CAF7D;--review:#E0A94C;--block:#E4736B;
+  --human:#5AC8E6;--ai:#C79BF0;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Vazirmatn','Segoe UI',Tahoma,sans-serif;
+  background:radial-gradient(1300px 800px at 72% -14%,var(--bg2),var(--bg)) fixed;color:var(--text);min-height:100vh;line-height:1.65}
+.app{max-width:1120px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px;font-weight:700}
+.logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--gold),var(--amber));box-shadow:0 0 26px rgba(230,179,90,.45)}
+.brand small{display:block;color:var(--muted);font-weight:400;font-size:12px}
+.lang{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:7px 13px;cursor:pointer}
+main{padding:20px 24px 46px}
+h2{color:var(--amber);margin:0 0 4px}
+.muted{color:var(--muted);font-size:13px}
+.note{font-size:12px;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:9px 13px;margin:10px 0}
+.goal{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin:12px 0}
+.goal .g{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:8px}
+label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px}
+input,select{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--text);border-radius:9px;padding:8px 11px;font-family:inherit;font-size:13px}
+button{background:linear-gradient(135deg,var(--gold),var(--amber));color:#20140a;border:0;border-radius:10px;padding:9px 17px;font-weight:700;cursor:pointer;font-size:13px}
+button:disabled{opacity:.45;cursor:not-allowed}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:14px 0}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:12px;text-align:center}
+.kpi b{display:block;font-size:24px;color:var(--amber)}
+.kpi span{font-size:12px;color:var(--muted)}
+.bars{display:flex;gap:14px;flex-wrap:wrap;margin:6px 0 14px}
+.bar{flex:1;min-width:220px;background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:12px}
+.bar h4{margin:0 0 8px;font-size:13px;color:var(--amber)}
+.brow{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:12px}
+.brow .t{flex:0 0 70px;color:var(--muted)}
+.brow .track{flex:1;height:8px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden}
+.brow .fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--amber))}
+.rotor{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:10px 0;font-family:monospace;font-size:12px;color:var(--muted);min-height:22px}
+.lead{border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px;background:rgba(255,255,255,.02)}
+.lead .top{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.pill{font-size:12px;padding:3px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.route-HumanExpert{color:var(--human);border-color:var(--human)}
+.route-AiNurture{color:var(--ai);border-color:var(--ai)}
+.route-NoPursuit{color:var(--muted)}
+.score{font-weight:700;color:var(--amber)}
+.prov{margin-top:8px;font-size:12px}
+.prov a{color:var(--amber);text-decoration:none;border-bottom:1px dashed var(--amber)}
+.prov a:hover{opacity:.8}
+.scores{display:flex;gap:8px;flex-wrap:wrap;margin:7px 0;font-size:12px}
+.scores span{background:rgba(255,255,255,.05);padding:3px 9px;border-radius:8px}
+.reasons{margin:6px 0 0;padding-inline-start:18px;font-size:12px;color:var(--muted)}
+details summary{cursor:pointer;color:var(--amber);font-size:12px;margin-top:6px}
+footer{padding:18px 24px;color:var(--muted);font-size:12px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand"><div class="logo"></div>
+      <div><span id="bt"></span><small id="bs"></small></div>
+    </div>
+    <button class="lang" onclick="toggleLang()">EN / فا</button>
+  </header>
+  <main id="main"></main>
+  <footer id="foot"></footer>
+</div>
+
+<script>
+let lang="fa", running=false, rotorTimer=null;
+const L=(fa,en)=>lang==="fa"?fa:en;
+
+// نمونهٔ لیدها (خروجی فرضیِ موتور، با provenance واقعی‌شکل)
+const SOURCES=[
+  {p:"LinkedIn",u:"https://linkedin.com/posts/investor-dubai-8842"},
+  {p:"YouTube",u:"https://youtube.com/watch?v=Ux93kd_comment"},
+  {p:"Forum/انجمن",u:"https://uae-invest-forum.com/thread/5521"},
+  {p:"Facebook Group",u:"https://facebook.com/groups/dubaiinvestors/perma/771"},
+  {p:"Lead Form",u:"https://elaris.landing/opt-in/inv?ref=camp3"},
+  {p:"Instagram",u:"https://instagram.com/p/Cq8salon_reply"},
+  {p:"TikTok",u:"https://tiktok.com/@salonseeker/video/7712"},
+  {p:"Partner Feed",u:"https://partner.altawasol.ae/feed/entry/33"}
+];
+const LEADS=[
+  {sum:"نیت خرید بیزینس شخصی · بودجه ۱M · دبی",intent:80,fit:80,comp:100,lang:"English",src:"Lead Form",text:"private investor, want to buy an operating business in Dubai, 1 million AED ready, passive income",prov:4},
+  {sum:"سرمایه‌گذار شخصی · گلدن ویزا · ملک",intent:75,fit:60,comp:85,lang:"Arabic",src:"Forum/انجمن",text:"أبحث عن استثمار في دبي، لدي رأس مال، مهتم بالعقار والإقامة",prov:2},
+  {sum:"شراکت/خرید سهم · درآمد ماهانه",intent:70,fit:60,comp:85,lang:"Persian",src:"LinkedIn",text:"دنبال شراکت یا خرید سهم در کسب‌وکار فعال دبی با درآمد ماهانه، بودجه نیم میلیون",prov:0},
+  {sum:"علاقه به سالن/فرانچایز · ۷۵۰k",intent:55,fit:60,comp:85,lang:"Hindi",src:"Instagram",text:"NRI investor Dubai, salon business, golden visa, AED 750,000",prov:5},
+  {sum:"فقط اشارهٔ عمومی به دبی (ضعیف)",intent:20,fit:40,comp:85,lang:"English",src:"YouTube",text:"Dubai investment looks interesting these days",prov:1},
+  {sum:"مسدود: منبع شرکتی/VC",intent:0,fit:0,comp:0,lang:"English",src:"—",text:"We are a corporate VC fund. Contact us via About Us.",prov:-1,blocked:true}
+];
+
+function route(score){return score>=90?"HumanExpert":score>=50?"AiNurture":"NoPursuit";}
+function final(l){return Math.round(l.intent*0.45+l.fit*0.30+ (({["Lead Form"]:100,["Partner Feed"]:90})[l.src]||55)*0.15 + 100*0.10);}
+
+function render(){
+  document.documentElement.lang=lang;document.documentElement.dir=lang==="fa"?"rtl":"ltr";
+  document.getElementById("bt").textContent=L("گزارش مدیریتی — یک نگاه","Management report — at a glance");
+  document.getElementById("bs").textContent=L("رادار غربال اتصالات · هر لید با «از کجا انتخاب شد»","Screening Radar · every lead with its provenance");
+  document.getElementById("foot").textContent=L(
+    "پیش‌نمایش. هر لید یک لینک منبعِ قابل‌کلیک دارد؛ نمرهٔ بالا→کارشناس، پایین‌تر→AI. رضایت قبل از تماس (دعوت opt-in، تأیید حقوقی آقای لطفی).",
+    "Preview. Each lead has a clickable provenance link; high score→human, lower→AI. Consent before contact (opt-in invite, cleared by counsel).");
+
+  const withScore=LEADS.filter(l=>!l.blocked).map(l=>({...l,score:final(l)}));
+  const blocked=LEADS.filter(l=>l.blocked);
+  const total=LEADS.length, high=withScore.filter(l=>l.score>=90).length,
+        mid=withScore.filter(l=>l.score>=50&&l.score<90).length,
+        low=withScore.filter(l=>l.score<50).length;
+
+  const byLang={}; withScore.forEach(l=>byLang[l.lang]=(byLang[l.lang]||0)+1);
+  const bySrc={}; withScore.forEach(l=>bySrc[l.src]=(bySrc[l.src]||0)+1);
+  const maxL=Math.max(1,...Object.values(byLang)), maxS=Math.max(1,...Object.values(bySrc));
+
+  let h=`<h2>${L("گزارش مدیریتی","Management report")}</h2>
+  <p class="muted">${L("کلِ پروژه در یک نگاه. هر لید نشان می‌دهد از کجا و با چه نمره‌ای انتخاب شد.",
+    "The whole project at a glance. Each lead shows where it came from and its score.")}</p>`;
+
+  // هدف‌گذاری لید
+  h+=`<div class="goal">
+    <b style="color:var(--amber)">${L("هدف‌گذاری لید","Goal-based targeting")}</b>
+    <div class="muted">${L("چند لید می‌خواهید، برای چه هدف مالی، در کدام منطقه/کشور؟",
+      "How many leads, for what financial goal, in which region/country?")}</div>
+    <div class="g">
+      <div><label>${L("تعداد لید","Lead count")}</label><input id="g_n" type="number" value="300"></div>
+      <div><label>${L("هدف مالی از (AED)","Goal from")}</label><input id="g_from" type="number" value="500000"></div>
+      <div><label>${L("تا (AED)","to")}</label><input id="g_to" type="number" value="2000000"></div>
+      <div><label>${L("شهر/منطقه","City/region")}</label><input id="g_city" value="Dubai"></div>
+      <div><label>${L("کشور/کشورها","Country")}</label><input id="g_country" value="UAE, GCC"></div>
+    </div>
+    <div style="margin-top:10px"><button onclick="startSearch()" ${running?"disabled":""}>${running?L("در حال جست‌وجو…","Searching…"):L("شروع و نمایش زندهٔ منبع","Start & show live source rotation")}</button></div>
+    <div class="rotor" id="rotor">${L("آمادهٔ اجرا…","Ready…")}</div>
+  </div>`;
+
+  // KPIها
+  h+=`<div class="kpis">
+    <div class="kpi"><b>${total}</b><span>${L("کل سیگنال","Total signals")}</span></div>
+    <div class="kpi"><b style="color:var(--human)">${high}</b><span>${L("نمرهٔ بالا → کارشناس","High → human")}</span></div>
+    <div class="kpi"><b style="color:var(--ai)">${mid}</b><span>${L("متوسط → AI","Mid → AI")}</span></div>
+    <div class="kpi"><b>${low}</b><span>${L("ضعیف","Weak")}</span></div>
+    <div class="kpi"><b style="color:var(--block)">${blocked.length}</b><span>${L("مسدود","Blocked")}</span></div>
+  </div>`;
+
+  // نمودارها
+  h+=`<div class="bars">
+    <div class="bar"><h4>${L("بر اساس زبان","By language")}</h4>${
+      Object.entries(byLang).map(([k,v])=>`<div class="brow"><span class="t">${k}</span><span class="track"><span class="fill" style="width:${v/maxL*100}%"></span></span><b>${v}</b></div>`).join("")}</div>
+    <div class="bar"><h4>${L("بر اساس منبع","By source")}</h4>${
+      Object.entries(bySrc).map(([k,v])=>`<div class="brow"><span class="t">${k}</span><span class="track"><span class="fill" style="width:${v/maxS*100}%"></span></span><b>${v}</b></div>`).join("")}</div>
+  </div>`;
+
+  // لیدها با provenance قابل‌کلیک
+  h+=`<h2 style="font-size:16px">${L("لیدها (با منبعِ قابل‌کلیک)","Leads (clickable provenance)")}</h2>`;
+  withScore.sort((a,b)=>b.score-a.score).forEach(l=>{
+    const src=SOURCES[l.prov]||{p:l.src,u:"#"};
+    const r=route(l.score);
+    h+=`<div class="lead">
+      <div class="top">
+        <span class="score">${l.score}</span>
+        <span class="pill route-${r}">${L(r==="HumanExpert"?"کارشناس":r==="AiNurture"?"هوش مصنوعی":"عدم پیگیری", r)}</span>
+        <span class="pill">${l.lang}</span><span class="pill">${l.src}</span>
+      </div>
+      <div style="margin-top:6px">${l.text}</div>
+      <div class="muted">${l.sum}</div>
+      <div class="scores"><span>Intent ${l.intent}</span><span>Fit ${l.fit}</span><span>Compliance ${l.comp}</span></div>
+      <div class="prov">🔗 ${L("از کجا انتخاب شد","Where selected")}: <a href="${src.u}" target="_blank">${src.p} — ${src.u}</a></div>
+      <details><summary>${L("دلیل نمره","Why this score")}</summary>
+        <ul class="reasons">
+          ${l.intent>0?`<li>${L("نیت/شخصی","Intent/personal")} +${l.intent}</li>`:""}
+          ${l.fit>0?`<li>${L("تناسب (دبی/بودجه/ملک)","Fit (Dubai/budget/asset)")} +${l.fit}</li>`:""}
+          <li>Compliance ${l.comp}</li>
+        </ul></details>
+    </div>`;
+  });
+
+  // مسدودشده‌ها (شفافیت)
+  if(blocked.length){
+    h+=`<div class="note" style="margin-top:14px">${L("مسدودشده (شفافیت — با دلیل):","Blocked (transparency — with reason):")}</div>`;
+    blocked.forEach(l=>{
+      h+=`<div class="lead" style="opacity:.75">
+        <div class="top"><span class="pill" style="color:var(--block);border-color:var(--block)">Blocked</span></div>
+        <div style="margin-top:6px">${l.text}</div>
+        <div class="muted">${L("نشانهٔ منبع شرکتی/دایرکتوری → مسدود","Corporate/directory marker → blocked")}</div>
+      </div>`;
+    });
+  }
+  document.getElementById("main").innerHTML=h;
+}
+
+function startSearch(){
+  if(running)return; running=true; render();
+  const rotor=document.getElementById("rotor");
+  let i=0;
+  const found=[];
+  rotorTimer=setInterval(()=>{
+    const s=SOURCES[i%SOURCES.length];
+    const num="+9715"+Math.floor(10000000+Math.random()*89999999);
+    const score=Math.floor(60+Math.random()*40);
+    found.push({num,score,src:s.p});
+    rotor.innerHTML = L(`چرخش منبع: ${s.p} … پیدا شد: ${num} (نمره ${score}) — مجموع ${found.length}`,
+                        `Source rotation: ${s.p} … found: ${num} (score ${score}) — total ${found.length}`);
+    i++;
+    if(i>=8){ clearInterval(rotorTimer); running=false;
+      rotor.innerHTML=L(`✓ در دقیقهٔ اول ${found.length} تلفن/ایمیل پیدا شد (اثبات عملکرد). همه با مبنای قانونی؛ تا رضایت، Hidden.`,
+                        `✓ ${found.length} contacts found in the first minute (proof). All with lawful basis; Hidden until consent.`);
+      render(); rotor.innerHTML=L(`✓ ${found.length} مورد پیدا شد — تا رضایت Hidden می‌مانند.`,`✓ ${found.length} found — Hidden until consent.`);
+    }
+  },420);
+}
+function toggleLang(){lang=lang==="fa"?"en":"fa";render();}
+render();
+</script>
+</body>
+</html>

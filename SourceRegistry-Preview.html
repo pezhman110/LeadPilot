@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>رجیستری منابع — LeadPilot</title>
+<style>
+:root{
+  --bg:#0A0612;--bg2:#130B24;--panel:rgba(255,255,255,.045);
+  --gold:#E6B35A;--amber:#F0C674;--line:rgba(230,179,90,.18);
+  --text:#EDE7F6;--muted:#9E97B5;--safe:#4CAF7D;--review:#E0A94C;--sig:#C79BF0;--corp:#5AC8E6;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Vazirmatn','Segoe UI',Tahoma,sans-serif;
+  background:radial-gradient(1300px 800px at 72% -14%,var(--bg2),var(--bg)) fixed;color:var(--text);min-height:100vh;line-height:1.55}
+.app{max-width:1080px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px;font-weight:700}
+.logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--gold),var(--amber));box-shadow:0 0 26px rgba(230,179,90,.45)}
+.brand small{display:block;color:var(--muted);font-weight:400;font-size:12px}
+.lang{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:7px 13px;cursor:pointer}
+main{padding:20px 24px 46px}
+h2{color:var(--amber);margin:0 0 4px}h3{color:var(--amber);font-size:14px;margin:18px 0 6px}
+.muted{color:var(--muted);font-size:13px}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;margin:12px 0}
+select{background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--text);border-radius:9px;padding:8px 11px;font-family:inherit;font-size:13px}
+.toggle{display:flex;gap:6px;align-items:center;font-size:13px;cursor:pointer}
+.group{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin:8px 0}
+.group h4{margin:0 0 7px;font-size:13px;color:var(--amber);display:flex;justify-content:space-between}
+.src{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px;border-top:1px solid rgba(255,255,255,.04)}
+.src:first-of-type{border-top:0}
+.rank{flex:0 0 26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;background:rgba(230,179,90,.15);color:var(--amber)}
+.name{flex:1}
+.pill{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.phone{color:var(--safe);border-color:var(--safe)}
+.signal{color:var(--sig);border-color:var(--sig)}
+.optin{color:var(--review);border-color:var(--review)}
+.corp{color:var(--corp);border-color:var(--corp)}
+.excluded{opacity:.32;text-decoration:line-through}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:8px 0}
+.cascade{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px}
+.chip{display:inline-block;font-size:12px;padding:5px 10px;border-radius:8px;border:1px solid var(--line);margin:3px}
+.note{font-size:12px;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:9px 13px;margin-top:10px}
+footer{padding:18px 24px;color:var(--muted);font-size:12px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand"><div class="logo"></div>
+      <div><span id="bt"></span><small id="bs"></small></div>
+    </div>
+    <button class="lang" onclick="toggleLang()">EN / فا</button>
+  </header>
+  <main id="main"></main>
+  <footer id="foot"></footer>
+</div>
+<script>
+let lang="fa";
+const L=(fa,en)=>lang==="fa"?fa:en;
+let personal=false, kind="all";
+
+const GROUPS={
+  A:L=>L?"A — منابع خودِ مجموعه":"A — Owned data",
+  B:L=>L?"B — فرم‌های رسمیِ پلتفرم":"B — Platform lead forms",
+  C:L=>L?"C — پیام‌رسان‌ها":"C — Messaging",
+  D:L=>L?"D — موتور جست‌وجو/وب":"D — Search/web",
+  E:L=>L?"E — نقشه/دایرکتوری (شرکتی)":"E — Maps/directories",
+  F:L=>L?"F — شبکه‌های اجتماعی":"F — Social",
+  G:L=>L?"G — کامنت/انجمن/تالار":"G — Comments/forums",
+  H:L=>L?"H — خبر/رسانه/رویداد":"H — News/media",
+  I:L=>L?"I — ثبت شرکت/B2B رسمی":"I — Company registries",
+  J:L=>L?"J — Providerهای قراردادی":"J — Contract providers",
+  K:L=>L?"K — مارکت‌پلیس‌ها":"K — Marketplaces",
+  L:L=>L?"L — اپ‌استورها":"L — App stores",
+  M:L=>L?"M — خروجی AI":"M — AI outputs",
+  N:L=>L?"N — آفلاین":"N — Offline"
+};
+// (code, name, group, role, rank, corpOnly, contract)
+const S=[
+  ["crm","CRM قبلی","A","phone",1,0,0],["web_forms","فرم‌های وب‌سایت","A","phone",1,0,0],
+  ["booking_system","سیستم رزرو","A","phone",1,0,0],["pos","POS و فروش","A","phone",1,0,0],
+  ["online_store","فروشگاه آنلاین","A","phone",1,0,0],["whatsapp_inbound","WhatsApp ورودی","A","phone",1,0,0],
+  ["referral_partner","Referral همکاران","A","phone",1,0,0],["influencer_code","کد اینفلوئنسر","A","phone",1,0,0],
+  ["meta_lead_ads","Meta Lead Ads","B","phone",4,0,1],["instagram_lead_ads","Instagram Lead Ads","B","phone",4,0,1],
+  ["linkedin_lead_gen","LinkedIn Lead Gen","B","phone",4,0,1],["tiktok_instant_forms","TikTok Instant Forms","B","phone",4,0,1],
+  ["snapchat_lead_gen","Snapchat Lead Gen","B","phone",4,0,1],["google_lead_forms","Google Lead Forms","B","phone",4,0,1],
+  ["click_to_whatsapp","Click-to-WhatsApp","B","phone",4,0,1],["landing_pages","صفحات فرود","B","phone",4,0,0],
+  ["whatsapp_business","WhatsApp Business","C","optin",4,0,1],["telegram_bot","Telegram Bot","C","optin",4,0,0],
+  ["web_chat","چت سایت","C","optin",4,0,0],["sms_gateway","SMS Gateway","C","optin",4,0,1],["email_gateway","Email Gateway","C","optin",4,0,1],
+  ["google_search_api","Google Search API","D","signal",5,0,1],["bing_search","Bing Search","D","signal",5,0,1],
+  ["brave_search","Brave Search","D","signal",5,0,1],["rss_feeds","RSS/Sitemap","D","signal",5,0,0],
+  ["google_places","Google Places","E","phone",3,1,1],["bing_maps","Bing Maps","E","phone",3,1,1],
+  ["business_directories","دایرکتوری تجاری","E","phone",3,1,0],["yellow_pages","Yellow Pages","E","phone",3,1,1],
+  ["linkedin_public","LinkedIn عمومی","F","signal",6,0,0],["instagram_public","Instagram عمومی","F","signal",6,0,0],
+  ["tiktok_public","TikTok عمومی","F","signal",6,0,0],["snapchat_public","Snapchat عمومی","F","signal",6,0,0],
+  ["youtube_public","YouTube کامنت/API","F","signal",6,0,0],["facebook_public","Facebook گروه عمومی","F","signal",6,0,0],
+  ["x_public","X/Twitter عمومی","F","signal",6,0,0],
+  ["reddit_api","Reddit API","G","signal",6,0,0],["stackexchange_api","Stack Exchange","G","signal",6,0,0],
+  ["investment_forums","انجمن سرمایه‌گذاری","G","signal",6,0,0],["franchise_forums","انجمن فرانچایز","G","signal",6,0,0],
+  ["beauty_forums","انجمن زیبایی","G","signal",6,0,0],["expat_forums","انجمن مهاجران","G","signal",6,0,0],
+  ["news_api","News API","H","signal",5,0,1],["funding_news","اخبار جذب سرمایه","H","signal",5,0,0],
+  ["ma_news","اخبار ادغام و خرید","H","signal",5,0,0],["event_calendar","تقویم رویداد","H","signal",5,0,0],
+  ["company_registry","ثبت شرکت","I","phone",3,1,0],["free_zones","مناطق آزاد","I","phone",3,1,0],
+  ["chambers_commerce","اتاق بازرگانی","I","phone",3,1,0],["exhibitor_lists","فهرست غرفه‌داران","I","phone",3,1,0],
+  ["apollo","Apollo","J","phone",2,1,1],["zoominfo","ZoomInfo","J","phone",2,1,1],["cognism","Cognism","J","phone",2,1,1],
+  ["lusha","Lusha","J","phone",2,1,1],["hunter","Hunter","J","phone",2,1,1],["snov","Snov.io","J","phone",2,1,1],
+  ["business_marketplaces","مارکت‌پلیس کسب‌وکار","K","signal",5,0,1],["franchise_marketplaces","مارکت‌پلیس فرانچایز","K","signal",5,0,1],
+  ["influencer_marketplaces","مارکت‌پلیس اینفلوئنسر","K","signal",5,0,1],["freelancer_marketplaces","مارکت‌پلیس فریلنسر","K","signal",5,0,1],
+  ["app_store_meta","App Store metadata","L","signal",5,1,0],["play_store_meta","Google Play metadata","L","signal",5,1,0],
+  ["ai_search","AI Search","M","signal",5,0,1],["ai_intent","Intent/Translation","M","signal",5,0,0],
+  ["business_card","کارت ویزیت","N","phone",1,0,0],["event_signup","ثبت‌نام رویداد","N","phone",1,0,0],
+  ["branch_intake","پذیرش شعبه","N","phone",1,0,0],["partner_clinic","کلینیک شریک","N","phone",3,1,0]
+];
+const ORDERS={
+  investment:["crm","referral_partner","linkedin_lead_gen","apollo","business_marketplaces","company_registry","google_places","funding_news","investment_forums","ai_search"],
+  salon:["crm","booking_system","instagram_lead_ads","tiktok_instant_forms","snapchat_lead_gen","click_to_whatsapp","google_lead_forms","influencer_code","landing_pages","whatsapp_business"],
+  factory:["business_directories","google_places","company_registry","linkedin_lead_gen","apollo","exhibitor_lists","chambers_commerce","business_marketplaces","news_api","referral_partner"],
+  freelancer:["web_forms","meta_lead_ads","influencer_marketplaces","influencer_code","instagram_lead_ads","event_signup","landing_pages"]
+};
+const roleLabel=r=>r==="phone"?L("شماره‌ده","Phone"):r==="signal"?L("سیگنال","Signal"):L("opt-in","Opt-in");
+
+function excluded(s){return personal && s[5]===1;} // corpOnly + personal
+
+function render(){
+  document.documentElement.lang=lang;document.documentElement.dir=lang==="fa"?"rtl":"ltr";
+  document.getElementById("bt").textContent=L("رجیستری منابع (۱۴ گروه)","Source registry (14 groups)");
+  document.getElementById("bs").textContent=L("۶۸ منبع · تفکیک شخصی/شرکتی · آبشار ارزان→گران","68 sources · personal/corporate · cheap→expensive cascade");
+  document.getElementById("foot").textContent=L(
+    "خطِ قرمز: از حساب شخصی شماره استخراج نمی‌شود؛ کامنت/انجمن فقط سیگنال؛ Google Maps/About فقط شرکتی؛ دریافت شماره ≠ اجازهٔ تماس فروش.",
+    "Red line: no personal-account phone extraction; forums are signal-only; Maps/About corporate-only; obtaining a number ≠ permission to sell-call.");
+
+  const m=document.getElementById("main");
+  let h=`<h2>${L("رجیستری جامع منابع","Comprehensive source registry")}</h2>
+  <p class="muted">${L("همان لیستِ ۱۴-گروهیِ شما (A–N). با تفکیکِ نقشِ منبع و سیاستِ فقط-شرکتی.",
+    "Your 14-group list (A–N), with source role and corporate-only policy.")}</p>
+
+  <div class="controls">
+    <label class="toggle"><input type="checkbox" ${personal?"checked":""} onchange="setPersonal(this.checked)"> ${L("پروژهٔ شخصی (حذف منابع فقط-شرکتی)","Personal project (exclude corporate-only)")}</label>
+    <select onchange="setKind(this.value)">
+      <option value="all" ${kind==="all"?"selected":""}>${L("آبشار عمومی","General cascade")}</option>
+      <option value="investment" ${kind==="investment"?"selected":""}>${L("خرید/سرمایه‌گذاری/فروش","Investment/Buy/Sell")}</option>
+      <option value="salon" ${kind==="salon"?"selected":""}>${L("سالن/هوم‌سرویس","Salon/Home")}</option>
+      <option value="factory" ${kind==="factory"?"selected":""}>${L("کارخانه/نمایندگی","Factory/Agency")}</option>
+      <option value="freelancer" ${kind==="freelancer"?"selected":""}>${L("فریلنسر/اینفلوئنسر","Freelancer/Influencer")}</option>
+    </select>
+  </div>
+  <div class="legend">
+    <span class="pill phone">${L("شماره‌ده","Phone")}</span>
+    <span class="pill signal">${L("سیگنال (شماره از opt-in)","Signal")}</span>
+    <span class="pill optin">${L("کانال opt-in","Opt-in channel")}</span>
+    <span class="pill corp">${L("فقط شرکتی","Corporate only")}</span>
+  </div>`;
+
+  // آبشار اختصاصی
+  if(kind!=="all"){
+    const order=ORDERS[kind]||[];
+    const isPersonal=kind==="salon";
+    const chips=order.map(c=>S.find(s=>s[0]===c)).filter(Boolean)
+      .filter(s=>!(isPersonal&&s[5]===1))
+      .map((s,i)=>`<span class="chip">${i+1}. ${s[1]}</span>`).join("");
+    h+=`<div class="cascade"><h3 style="margin-top:0">${L("ترتیبِ اختصاصیِ این پروژه","Project-specific order")}</h3>${chips}
+      ${isPersonal?`<div class="note">${L("این پروژه شخصی است → Google Maps/دایرکتوری حذف شد.","Personal project → Maps/directories excluded.")}</div>`:""}</div>`;
+  }
+
+  // گروه‌ها
+  for(const g of Object.keys(GROUPS)){
+    const items=S.filter(s=>s[2]===g);
+    if(!items.length)continue;
+    h+=`<div class="group"><h4><span>${GROUPS[g](lang==="fa")}</span><span class="muted">${items.length}</span></h4>`;
+    items.sort((a,b)=>a[4]-b[4]).forEach(s=>{
+      const ex=excluded(s);
+      h+=`<div class="src ${ex?"excluded":""}">
+        <span class="rank">${s[4]}</span>
+        <span class="name">${s[1]} ${s[6]?`<span class="muted">· ${L("قراردادی","contract")}</span>`:""}</span>
+        <span class="pill ${s[3]}">${roleLabel(s[3])}</span>
+        ${s[5]?`<span class="pill corp">${L("شرکتی","corp")}</span>`:""}
+      </div>`;
+    });
+    h+=`</div>`;
+  }
+  m.innerHTML=h;
+}
+function setPersonal(v){personal=v;render();}
+function setKind(v){kind=v;render();}
+function toggleLang(){lang=lang==="fa"?"en":"fa";render();}
+render();
+</script>
+</body>
+</html>

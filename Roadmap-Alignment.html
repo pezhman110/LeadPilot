@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>رادار غربال اتصالات — نقشهٔ راه و هم‌سویی</title>
+<style>
+:root{
+  --bg:#0A0612; --bg2:#130B24; --panel:rgba(255,255,255,.045);
+  --gold:#E6B35A; --amber:#F0C674; --line:rgba(230,179,90,.18);
+  --text:#EDE7F6; --muted:#9E97B5; --safe:#4CAF7D; --review:#E0A94C;
+  --err:#E4736B; --done:#4CAF7D; --now:#F0C674; --next:#8A83A0;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Vazirmatn','Segoe UI',Tahoma,sans-serif;
+  background:radial-gradient(1300px 800px at 72% -14%,var(--bg2),var(--bg)) fixed;
+  color:var(--text);min-height:100vh;line-height:1.75}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+header{display:flex;align-items:center;justify-content:space-between;padding:22px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:13px;font-weight:700}
+.logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--gold),var(--amber));box-shadow:0 0 28px rgba(230,179,90,.45)}
+.brand small{display:block;color:var(--muted);font-weight:400;font-size:12px}
+.lang{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:7px 13px;cursor:pointer}
+h1{font-size:22px;color:var(--amber);margin:26px 0 4px}
+h2{font-size:17px;color:var(--amber);margin:30px 0 10px;padding-top:8px;border-top:1px solid var(--line)}
+.sub{color:var(--muted);font-size:13px;margin-bottom:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:16px;margin:10px 0}
+.flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:13px}
+.flow .node{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:9px;padding:7px 12px}
+.flow .arr{color:var(--gold)}
+.bad{border-color:var(--err);color:var(--err)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.rl{background:var(--panel);border:1px solid var(--line);border-inline-start:3px solid var(--err);border-radius:12px;padding:13px;margin:8px 0}
+.rl b{color:var(--amber)}
+.phase{display:flex;gap:12px;align-items:stretch;margin:8px 0}
+.phase .dot{width:14px;border-radius:99px;flex:0 0 14px}
+.d-done{background:var(--done)} .d-now{background:var(--now)} .d-next{background:var(--next)}
+.phase .body{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+.phase .head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.badge{font-size:11px;padding:3px 10px;border-radius:999px;border:1px solid var(--line)}
+.b-done{color:var(--done);border-color:var(--done)}
+.b-now{color:#20140a;background:linear-gradient(135deg,var(--gold),var(--amber));border-color:transparent;font-weight:700}
+.b-next{color:var(--next)}
+.pill{font-size:12px;padding:3px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted);display:inline-block;margin:3px 3px 0 0}
+.chk{display:flex;gap:9px;align-items:flex-start;margin:6px 0;font-size:14px}
+.chk .m{color:var(--safe);flex:0 0 18px}
+.eng{text-align:center}
+.eng .box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:13px}
+.eng .big{font-size:15px;color:var(--amber);font-weight:700}
+.mini{color:var(--muted);font-size:12px}
+footer{padding:24px 22px;color:var(--muted);font-size:12px;border-top:1px solid var(--line);margin-top:20px;text-align:center}
+.note{font-size:12px;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:9px 13px;margin:8px 0}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:6px 0 14px}
+.legend span{display:flex;align-items:center;gap:6px}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+@media(max-width:640px){.grid2,.grid3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="wrap-full">
+  <div class="wrap" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:0">
+    <div class="brand"><div class="logo"></div>
+      <div><span id="brandT"></span><small id="brandS"></small></div>
+    </div>
+    <button class="lang" onclick="toggleLang()">EN / فا</button>
+  </div>
+</header>
+
+<div class="wrap" id="content"></div>
+
+<footer id="foot"></footer>
+
+<script>
+let lang="fa";
+const L = (fa,en)=> lang==="fa"?fa:en;
+
+function render(){
+  document.documentElement.lang=lang;
+  document.documentElement.dir = lang==="fa"?"rtl":"ltr";
+  document.getElementById("brandT").textContent = L("رادار غربال اتصالات","Connections Screening Radar");
+  document.getElementById("brandS").textContent = L("نقشهٔ راه و هم‌سویی — LeadPilot","Roadmap & alignment — LeadPilot");
+  document.getElementById("foot").innerHTML = L(
+    "این صفحه از سند مرجعِ شما ساخته شده تا با هم هم‌سو جلو برویم. زمان‌بندی برای تیم ۴ تا ۶ نفره؛ مجموع MVP حدود ۱۲ تا ۱۴ هفته.",
+    "Built from your master plan so we proceed aligned. Timeline for a 4–6 person team; total MVP ≈ 12–14 weeks.");
+
+  const c = document.getElementById("content");
+  c.innerHTML = `
+  <h1>${L("نقشهٔ راهِ سامانه","System roadmap")}</h1>
+  <div class="sub">${L("هدف: کشف سیگنالِ عمومیِ تقاضا، هدایت به رضایت، غربال، و تحویل لیدِ قانونی به فروش — یک موتور، ۱۶ پروژه.",
+    "Goal: discover public demand signals, drive to consent, qualify, hand legal leads to sales — one engine, 16 projects.")}</div>
+
+  <div class="legend">
+    <span><i class="sw" style="background:var(--done)"></i>${L("انجام‌شده","Done")}</span>
+    <span><i class="sw" style="background:var(--now)"></i>${L("اکنون","Now")}</span>
+    <span><i class="sw" style="background:var(--next)"></i>${L("بعدی","Next")}</span>
+  </div>
+
+  <!-- CORRECT FLOW -->
+  <h2>${L("مسیر صحیح مشتری (خط قرمز اصلی)","The correct customer flow (core red line)")}</h2>
+  <div class="card">
+    <div class="flow">
+      <span class="node">${L("سیگنالِ عمومیِ تقاضا","Public demand signal")}</span><span class="arr">→</span>
+      <span class="node">${L("بررسی Compliance","Compliance review")}</span><span class="arr">→</span>
+      <span class="node">${L("لندینگ / فرم / تبلیغ مجاز","Landing / form / approved ad")}</span><span class="arr">→</span>
+      <span class="node">${L("رضایت صریح (Opt-in)","Explicit opt-in")}</span><span class="arr">→</span>
+      <span class="node">${L("غربالگری","Qualification")}</span><span class="arr">→</span>
+      <span class="node">CRM</span><span class="arr">→</span>
+      <span class="node">${L("فروش","Sales")}</span>
+    </div>
+    <div class="note">${L("جریان ممنوع: اکانت عمومی → enrichment → شمارهٔ شخصی → تماس بدون رضایت.",
+      "Forbidden flow: public account → enrichment → personal number → unconsented contact.")}</div>
+  </div>
+
+  <!-- RED LINES -->
+  <h2>${L("۵ خط قرمز (پیش از هر چیز)","5 red lines (before anything)")}</h2>
+  ${redline("۱.۱","بانک و اطلاعات بانکی","Bank & banking data",
+    "فقط قرارداد رسمی/Referral/کمپین با رضایت. نه فهرست مشتریان بانک، نه سوابق حساب، نه پورسانت پنهان.",
+    "Only formal contract / referral / consented campaign. No customer lists, account records, or hidden commissions.")}
+  ${redline("۱.۲","۲۰ میلیون شمارهٔ قدیمی","20M legacy numbers",
+    "داشتن شماره ≠ اجازهٔ تماس. بدون سابقهٔ رضایت، قرنطینه تا تأیید حقوقی. Opt-in به‌جای تماس مستقیم.",
+    "Having a number ≠ permission to call. Without consent record: quarantine until legal review. Opt-in instead of direct contact.")}
+  ${redline("۱.۳","تبدیل اکانت به موبایل/ایمیل","Account → phone/email",
+    "Apollo/ZoomInfo فقط با قرارداد و ToS و مبنای قانونی؛ بدون غنی‌سازیِ پروفایل شخصی بدون مجوز.",
+    "Apollo/ZoomInfo only with contract, ToS and lawful basis; no unauthorized personal-profile enrichment.")}
+  ${redline("۱.۴","جنسیت/سن/ملیت/ثروت","Gender/age/nationality/wealth",
+    "استنباط قطعی ممنوع؛ فقط خوداظهاری. قیمت‌گذاری بر اساس ملیت حذف — قیمت بر اساس خدمت/هزینه/ریسک/SLA.",
+    "No firm inference; self-declared only. Nationality-based pricing removed — price by service/cost/risk/SLA.")}
+  ${redline("۱.۵","سود ثابت / ضمانت","Guaranteed return",
+    "«سود ثابت» و «مشارکت در سود و زیان» با هم تعارض دارند. پشت compliance gate تا تأیید Lutfi & Co (SCA/CMA).",
+    "'Fixed return' and 'profit-and-loss sharing' conflict. Behind a compliance gate until Lutfi & Co (SCA/CMA) sign-off.")}
+
+  <!-- ONE ENGINE 16 PROJECTS -->
+  <h2>${L("یک موتور، ۱۶ پروژه","One engine, 16 projects")}</h2>
+  <div class="card">
+    <div class="mini">${L("هستهٔ یکسان؛ هر پروژه فقط با Configuration. پروژهٔ اول:","Same core; each project via configuration only. First project:")}</div>
+    <div style="margin-top:8px"><b style="color:var(--amber)">${L("سرمایه‌گذار و خریدار شخصی کسب‌وکار — دبی","Personal Business Investor & Buyer — Dubai")}</b></div>
+    <div style="margin-top:6px">
+      ${["ar","en","fa","hi","fr","ru"].map(x=>`<span class="pill">${x}</span>`).join("")}
+      <span class="pill">${L("حداقل بودجه ۵۰۰k","Min budget 500k")}</span>
+      <span class="pill">${L("دبی → امارات → GCC","Dubai → UAE → GCC")}</span>
+    </div>
+  </div>
+
+  <!-- AI 4 ENGINES -->
+  <h2>${L("لایهٔ هوش مصنوعی — ۴ موتور","AI layer — 4 engines")}</h2>
+  <div class="grid2">
+    ${engine("موتور ۱","Engine 1","قواعد قطعی","Deterministic rules","بودجه، مکان، نیت، کلمات منفی، منبع، رضایت، تازگی","Budget, location, intent, negatives, source, consent, recency")}
+    ${engine("موتور ۲","Engine 2","تشابه معنایی","Semantic similarity","فهم جمله حتی بدون کلمهٔ کلیدی صریح","Understands intent even without explicit keywords")}
+    ${engine("موتور ۳","Engine 3","LLM طبقه‌بند","LLM classifier","خروجی JSON ساختاریافته با confidence و evidence","Structured JSON with confidence + evidence")}
+    ${engine("موتور ۴","Engine 4","مدل آماری کالیبره","Calibrated statistical","از نتیجهٔ واقعی فروش یاد می‌گیرد؛ وزن‌ها Versioned و Audit-able","Learns from real sales; weights versioned & auditable")}
+  </div>
+  <div class="note">${L("قید مهم: LLM خودش وزن‌ها را تغییر نمی‌دهد؛ هر تغییر وزن باید Versioned و قابل Audit باشد.",
+    "Key constraint: the LLM must not self-adjust weights; every weight change must be versioned and auditable.")}</div>
+
+  <!-- PHASES -->
+  <h2>${L("فازها و جایگاه فعلی ما","Phases & where we are")}</h2>
+  ${phase("done","فاز صفر","Phase 0","حقوقی و داده","Legal & data","۱ هفته","1 wk",
+    "Data Inventory، سیاست رضایت/Opt-out، Allowlist/Blocklist، قرارداد شریک، فرم رضایت، افشای ریسک.",
+    "Data inventory, consent/opt-out policy, allow/block lists, partner contract, consent form, risk disclosure.")}
+  ${phase("now","فاز یک","Phase 1","هستهٔ فنی — تا نقطهٔ کنترل","Technical core — to control point","۲–۴ هفته","2–4 wk",
+    "Projects، دامنهٔ DDD، EF Core + Postgres، API، داشبورد Blazor، تست‌ها. ✔ ساخته و تحویل شد (نیازمند build میلاد).",
+    "Projects, DDD domain, EF Core + Postgres, API, Blazor dashboard, tests. ✔ Built & delivered (needs Milad's build).")}
+  ${phase("next","فاز دو","Phase 2","جست‌وجوی زنده + رضایت + CRM","Live search + consent + CRM","۴–۶ هفته","4–6 wk",
+    "Connector، Search Run، Query شش‌زبانه، امتیازدهی، مرکز رضایت، فرم غربالگری، Pipeline، Suppression.",
+    "Connector, search run, 6-lang queries, scoring, consent center, qualification form, pipeline, suppression.")}
+  ${phase("next","فاز سه","Phase 3","هوش مصنوعی","AI","۲–۴ هفته","2–4 wk",
+    "۴ موتور، تشخیص زبان، LLM ساختاریافته، پزشک نرم‌افزار (RAG روی اسناد تأییدشده).",
+    "4 engines, language detection, structured LLM, internal copilot (RAG over approved docs).")}
+  ${phase("next","فاز چهار","Phase 4","شریک و مالی","Partners & finance","۲ هفته","2 wk",
+    "Onboarding شریک، قرارداد، Referral، موتور پورسانت، CAC/ROI.",
+    "Partner onboarding, contract, referral, commission engine, CAC/ROI.")}
+  ${phase("next","فاز پنج","Phase 5","تعمیم به ۱۵ پروژهٔ دیگر","Scale to 15 more","—","—",
+    "فقط Configuration؛ بدون تغییر کد اصلی.",
+    "Configuration only; no change to core code.")}
+
+  <!-- CONTROL POINT -->
+  <h2>${L("نقطهٔ کنترل فعلی","Current control point")}</h2>
+  <div class="card">
+    <div class="mini">${L("پیش از رفتن به فاز دو، این سه باید روی دستگاه میلاد سبز شوند:","Before phase 2, these three must go green on Milad's machine:")}</div>
+    <div class="grid3" style="margin-top:10px">
+      <div class="eng"><div class="box"><div class="big">1</div>${L("Build موفق","Build succeeded")}</div></div>
+      <div class="eng"><div class="box"><div class="big">2</div>${L("Migration و ساخت جدول‌ها","Migration & tables")}</div></div>
+      <div class="eng"><div class="box"><div class="big">3</div>${L("ثبت پروژهٔ اول در Postgres","First project in Postgres")}</div></div>
+    </div>
+  </div>
+
+  <!-- MVP SUCCESS -->
+  <h2>${L("معیار موفقیت MVP (۱۱ شرط)","MVP success criteria (11)")}</h2>
+  <div class="card">
+    ${[
+      ["هر نتیجه URL و مدرک واقعی دارد","Every result has a URL and real evidence"],
+      ["اجرای زندهٔ Connectorها دیده می‌شود","Live connector runs are visible"],
+      ["هیچ دادهٔ ساختگی وارد نمی‌شود","No fabricated data enters"],
+      ["منبع خصوصی/ممنوع مسدود می‌شود","Private/forbidden sources are blocked"],
+      ["نتایج تکراری ادغام می‌شوند","Duplicates are merged"],
+      ["دلیل امتیاز قابل مشاهده است","Score reasoning is visible"],
+      ["تماس بدون رضایت فنی غیرممکن است","Unconsented contact is technically impossible"],
+      ["Opt-out فوراً در همهٔ کانال‌ها اجرا می‌شود","Opt-out applies instantly across channels"],
+      ["فروشنده فقط لید رضایت‌دار می‌بیند","Sales only sees consented leads"],
+      ["قرارداد و پورسانت قابل Audit است","Contracts & commissions are auditable"],
+      ["پروژهٔ دوم فقط با Configuration ساخته می‌شود","2nd project via configuration only"]
+    ].map(x=>`<div class="chk"><span class="m">✓</span><span>${L(x[0],x[1])}</span></div>`).join("")}
+  </div>
+
+  <!-- DO NOW -->
+  <h2>${L("کارهایی که همین حالا لازم است (۱۰ مورد)","What's needed now (10)")}</h2>
+  <div class="card">
+    <div class="mini">${L("این‌ها ورودیِ انسانی‌اند که فقط شما می‌توانید بدهید و ساختِ فاز دو را دقیق می‌کنند:",
+      "These are human inputs only you can provide; they sharpen phase 2:")}</div>
+    <div style="margin-top:8px">
+    ${[
+      ["نام و تعریف دقیق پروژهٔ اول ✔","First project name & definition ✔"],
+      ["فهرست منابع مجاز نسخهٔ اول","Allowed sources for v1"],
+      ["خلاصهٔ قرارداد Apollo/ایپفای","Apollo/Apify contract summary"],
+      ["شش گروه زبانی ✔","Six language groups ✔"],
+      ["کلمات مثبت/منفی هر زبان","Positive/negative words per language"],
+      ["مدل اولیهٔ امتیازدهی ✔","Initial scoring model ✔"],
+      ["متن رضایت FA/EN و ترجمه‌ها","Consent text FA/EN + translations"],
+      ["پرسش‌های فرم غربالگری","Qualification form questions"],
+      ["مراحل CRM ✔","CRM stages ✔"],
+      ["کاربران و سطح دسترسی (مدیر/فروشنده/بازاریاب/ناظر)","Users & roles (manager/sales/marketer/observer)"]
+    ].map(x=>`<span class="pill">${L(x[0],x[1])}</span>`).join("")}
+    </div>
+  </div>
+  `;
+}
+
+function redline(no,fa,en,dfa,den){
+  return `<div class="rl"><b>${no} — ${L(fa,en)}</b><div class="mini" style="margin-top:4px">${L(dfa,den)}</div></div>`;
+}
+function engine(nfa,nen,tfa,ten,dfa,den){
+  return `<div class="eng"><div class="box"><div class="mini">${L(nfa,nen)}</div><div class="big">${L(tfa,ten)}</div><div class="mini" style="margin-top:5px">${L(dfa,den)}</div></div></div>`;
+}
+function phase(state,nfa,nen,tfa,ten,tmfa,tmen,dfa,den){
+  const dot = state==="done"?"d-done":state==="now"?"d-now":"d-next";
+  const bad = state==="done"?"b-done":state==="now"?"b-now":"b-next";
+  const label = state==="done"?L("انجام‌شده","Done"):state==="now"?L("اکنون","Now"):L("بعدی","Next");
+  return `<div class="phase"><div class="dot ${dot}"></div><div class="body">
+    <div class="head"><b>${L(nfa,nen)} · ${L(tfa,ten)}</b>
+      <span><span class="pill">${L(tmfa,tmen)}</span><span class="badge ${bad}">${label}</span></span></div>
+    <div class="mini" style="margin-top:6px">${L(dfa,den)}</div>
+  </div></div>`;
+}
+function toggleLang(){ lang=lang==="fa"?"en":"fa"; render(); }
+render();
+</script>
+</body>
+</html>

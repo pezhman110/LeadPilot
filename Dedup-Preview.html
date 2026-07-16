@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>جلوگیری از دریافت مجدد — LeadPilot</title>
+<style>
+:root{--bg:#0A0612;--bg2:#130B24;--panel:rgba(255,255,255,.045);--gold:#E6B35A;--amber:#F0C674;
+--line:rgba(230,179,90,.18);--text:#EDE7F6;--muted:#9E97B5;--safe:#4CAF7D;--review:#E0A94C;--block:#E4736B}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Vazirmatn','Segoe UI',Tahoma,sans-serif;background:radial-gradient(1300px 800px at 72% -14%,var(--bg2),var(--bg)) fixed;color:var(--text);min-height:100vh;line-height:1.55}
+.app{max-width:940px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px;font-weight:700}
+.logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--gold),var(--amber));box-shadow:0 0 26px rgba(230,179,90,.45)}
+.brand small{display:block;color:var(--muted);font-weight:400;font-size:12px}
+.lang{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:7px 13px;cursor:pointer}
+main{padding:20px 24px 46px}
+h2{color:var(--amber);margin:0 0 4px}h3{color:var(--amber);font-size:14px;margin:18px 0 8px}
+.muted{color:var(--muted);font-size:13px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:15px;margin:10px 0}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+input,select{background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--text);border-radius:9px;padding:8px 11px;font-family:inherit;font-size:13px}
+button{background:linear-gradient(135deg,var(--gold),var(--amber));color:#20140a;border:0;border-radius:10px;padding:9px 16px;font-weight:700;cursor:pointer;font-size:13px}
+.mono{font-family:monospace;font-size:12px;color:var(--amber);word-break:break-all}
+.rec{border:1px solid var(--line);border-radius:11px;padding:11px;margin-top:8px;background:rgba(255,255,255,.02)}
+.rec .h{display:flex;justify-content:space-between;align-items:center}
+.obs{font-size:12px;color:var(--muted);margin-top:5px;padding-inline-start:14px}
+.pill{font-size:11px;padding:2px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.new{color:var(--safe);border-color:var(--safe)}
+.dup{color:var(--review);border-color:var(--review)}
+.note{font-size:12px;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:9px 13px;margin-top:10px}
+footer{padding:18px 24px;color:var(--muted);font-size:12px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header><div class="brand"><div class="logo"></div>
+    <div><span id="bt"></span><small id="bs"></small></div></div>
+    <button class="lang" onclick="toggleLang()">EN / فا</button></header>
+  <main id="main"></main>
+  <footer id="foot"></footer>
+</div>
+<script>
+let lang="fa";const L=(fa,en)=>lang==="fa"?fa:en;
+let records=[]; // {hash, first, observations:[{src,t}]}
+let reservations=new Set();
+let resLog=[];
+
+function normPhone(raw){
+  let d=(raw.match(/\d/g)||[]).join("");
+  if(d.startsWith("00"))d=d.slice(2);
+  if(d.startsWith("0"))d="971"+d.slice(1);
+  else if(d.length<=9)d="971"+d;
+  return "+"+d;
+}
+// هش نمایشی (دمو) — در .NET واقعی HMAC-SHA256 است
+function demoHash(norm){let h=0;for(const c of norm)h=(h*31+c.charCodeAt(0))>>>0;return "h"+h.toString(16);}
+
+function register(){
+  const raw=document.getElementById("ph").value.trim();
+  const src=document.getElementById("src").value;
+  if(!raw)return;
+  const norm=normPhone(raw);
+  const hash=demoHash(norm);
+  const ex=records.find(r=>r.hash===hash);
+  if(ex){ ex.observations.push({src,t:Date.now()}); }
+  else{ records.unshift({hash,norm,first:src,observations:[{src,t:Date.now()}]}); }
+  render();
+}
+function reserve(){
+  const p=document.getElementById("prospect").value.trim()||"P-001";
+  const prov=document.getElementById("prov").value;
+  const key=`ENRICH:${p}:${prov}:phone`;
+  if(reservations.has(key)){ resLog.unshift({key,ok:false}); }
+  else{ reservations.add(key); resLog.unshift({key,ok:true}); }
+  render();
+}
+
+function render(){
+  document.documentElement.lang=lang;document.documentElement.dir=lang==="fa"?"rtl":"ltr";
+  document.getElementById("bt").textContent=L("جلوگیری از دریافت/پرداخت مجدد","No re-fetch / no double-pay");
+  document.getElementById("bs").textContent=L("نرمال‌سازی + هش + مشاهده + رزرو Enrichment","Normalize + hash + observation + reservation");
+  document.getElementById("foot").textContent=L(
+    "یک شماره در فرمت‌های مختلف = یک پرونده. منبع جدید = فقط مشاهده (بدون خرید مجدد). رزرو = جلوگیری از پرداخت هم‌زمانِ دو Worker.",
+    "One number across formats = one record. New source = observation only (no repurchase). Reservation = no double-pay by two workers.");
+  const m=document.getElementById("main");
+  let h=`<h2>${L("جلوگیری از دریافت مجددِ شماره","Prevent number re-fetch")}</h2>
+  <p class="muted">${L("شمارهٔ کشف‌شده نرمال و هش می‌شود؛ اگر قبلاً بوده، فقط «مشاهدهٔ جدید» ثبت می‌شود، نه پروندهٔ نو و نه خرید دوباره.",
+    "Discovered number is normalized and hashed; if seen before, only a new observation is logged — no new record, no repurchase.")}</p>
+
+  <div class="card">
+    <h3 style="margin-top:0">${L("ثبت شمارهٔ کشف‌شده","Register discovered number")}</h3>
+    <div class="row">
+      <input id="ph" placeholder="0501234567 / +971… / 00971…" style="max-width:220px">
+      <select id="src">
+        <option value="crm">CRM</option><option value="google_places">Google Places</option>
+        <option value="apollo">Apollo</option><option value="partner_feed">Partner Feed</option>
+        <option value="landing_pages">Landing</option>
+      </select>
+      <button onclick="register()">${L("ثبت","Register")}</button>
+    </div>
+    <div class="note">${L("همهٔ این فرمت‌ها یکی‌اند: 0501234567 = +971501234567 = 00971501234567","All these are one: 0501234567 = +971501234567 = 00971501234567")}</div>
+  </div>`;
+
+  if(records.length){
+    h+=`<h3>${L("پرونده‌ها","Contact records")} (${records.length})</h3>`;
+    records.forEach(r=>{
+      const dup=r.observations.length>1;
+      h+=`<div class="rec"><div class="h">
+        <span class="mono">${r.norm} · ${r.hash}</span>
+        <span class="pill ${dup?"dup":"new"}">${dup?L(`${r.observations.length} مشاهده`,`${r.observations.length} observations`):L("جدید","new")}</span></div>
+        ${r.observations.map((o,i)=>`<div class="obs">${i+1}. ${o.src}${i>0?" — "+L("مشاهده (بدون خرید مجدد)","observation (no repurchase)"):" — "+L("اولین","first")}</div>`).join("")}
+      </div>`;
+    });
+  }
+
+  h+=`<div class="card">
+    <h3 style="margin-top:0">${L("رزرو Enrichment (جلوگیری از پرداخت دوباره)","Enrichment reservation (no double-pay)")}</h3>
+    <div class="row">
+      <input id="prospect" placeholder="Prospect ID" value="P-001" style="max-width:140px">
+      <select id="prov"><option value="apollo">Apollo</option><option value="zoominfo">ZoomInfo</option><option value="lusha">Lusha</option></select>
+      <button onclick="reserve()">${L("تلاش برای رزرو","Try reserve")}</button>
+    </div>
+    <div class="muted" style="margin-top:6px">${L("کلید: ENRICH:{Prospect}:{Provider}:phone — دومین تلاش رد می‌شود.","Key: ENRICH:{Prospect}:{Provider}:phone — a second attempt is rejected.")}</div>
+    ${resLog.slice(0,6).map(x=>`<div class="obs mono" style="color:${x.ok?"var(--safe)":"var(--block)"}">${x.ok?"✓ "+L("رزرو شد","reserved"):"✗ "+L("رد — قبلاً رزرو شده","rejected — already reserved")}: ${x.key}</div>`).join("")}
+  </div>`;
+  m.innerHTML=h;
+}
+function toggleLang(){lang=lang==="fa"?"en":"fa";render();}
+render();
+</script>
+</body>
+</html>

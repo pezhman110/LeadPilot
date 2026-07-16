@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>اتصالات غنی‌سازی — LeadPilot</title>
+<style>
+:root{
+  --void:#07060D;--panel:#0F0C1A;--panel2:#151024;--edge:rgba(214,178,102,.16);
+  --gold:#D6B266;--amber:#F2CE80;--ink:#ECE7F5;--dim:#9C93B4;
+  --ok:#54B78A;--warn:#E4A94C;--bad:#E1685E;--info:#5BB6D6;--idle:#4A4460;
+}
+*{box-sizing:border-box}
+body{margin:0;background:
+  radial-gradient(900px 500px at 82% -10%,#1a1330 0%,transparent 60%),
+  radial-gradient(700px 500px at 0% 110%,#12182b 0%,transparent 55%),var(--void);
+  color:var(--ink);font-family:'Vazirmatn','Segoe UI',Tahoma,sans-serif;line-height:1.6;min-height:100vh}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px 60px}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 0;border-bottom:1px solid var(--edge)}
+.mark{display:flex;align-items:center;gap:12px}
+.logo{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,var(--gold),var(--amber));box-shadow:0 0 24px rgba(214,178,102,.4)}
+.mark b{font-size:15px}.mark small{display:block;color:var(--dim);font-weight:400;font-size:12px}
+.lang{background:transparent;border:1px solid var(--edge);color:var(--ink);border-radius:9px;padding:7px 13px;cursor:pointer;font-family:inherit;font-size:12px}
+h2{color:var(--amber);font-size:13px;letter-spacing:1.5px;text-transform:uppercase;margin:22px 0 4px;font-weight:600}
+.sub{color:var(--dim);font-size:12.5px;margin-bottom:12px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.conn{background:var(--panel);border:1px solid var(--edge);border-radius:13px;padding:14px 16px}
+.conn b{font-size:14px}
+.conn .note{font-size:11px;color:var(--dim);margin:2px 0 8px}
+.scope{font-size:11px;color:var(--dim);line-height:1.9;margin:8px 0}
+.scope .y{color:var(--ok)}.scope .n{color:var(--bad)}
+.state{font-size:10.5px;padding:2px 9px;border-radius:20px;display:inline-block;margin-bottom:8px}
+.s-no{color:var(--dim);background:rgba(255,255,255,.05)}
+.s-on{color:var(--ok);background:rgba(84,183,138,.12)}
+.btn{width:100%;background:linear-gradient(135deg,var(--gold),var(--amber));color:#231703;border:0;border-radius:9px;padding:9px 14px;font-weight:700;cursor:pointer;font-family:inherit;font-size:12.5px}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--edge);font-weight:500}
+.guard{background:var(--panel);border:1px solid rgba(225,104,94,.3);border-radius:13px;padding:14px 16px;margin-top:10px}
+.guard h3{margin:0 0 8px;font-size:13px;color:var(--bad)}
+.guard ul{margin:0;padding-inline-start:18px}
+.guard li{font-size:12px;color:var(--dim);margin:3px 0}
+.demo{background:var(--panel);border:1px solid var(--edge);border-radius:13px;padding:14px 16px;margin-top:10px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+select{background:var(--panel2);border:1px solid var(--edge);color:var(--ink);border-radius:8px;padding:8px 11px;font-family:inherit;font-size:12px}
+label{font-size:12px;color:var(--dim)}
+.chk{font-size:12px;color:var(--dim);display:flex;align-items:center;gap:6px;cursor:pointer}
+.res{margin-top:8px;border-radius:9px;padding:10px 13px;font-size:12.5px;border:1px solid var(--edge)}
+.res.ok{border-color:var(--ok);color:var(--ok)}.res.no{border-color:var(--bad);color:var(--bad)}
+.note2{font-size:11.5px;color:var(--dim);border:1px dashed var(--edge);border-radius:11px;padding:11px 15px;margin-top:14px}
+.note2 b{color:var(--amber)}
+code{background:rgba(255,255,255,.05);padding:1px 6px;border-radius:5px;color:var(--amber);font-size:11px}
+footer{color:var(--dim);font-size:11px;border-top:1px solid var(--edge);margin-top:26px;padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark"><div class="logo"></div>
+      <div><b id="t_title"></b><small id="t_sub"></small></div></div>
+    <button class="lang" onclick="toggleLang()">EN / فارسی</button>
+  </header>
+
+  <h2 id="t_cH"></h2>
+  <div class="sub" id="t_cS"></div>
+  <div class="cards" id="conns"></div>
+
+  <h2 id="t_gH"></h2>
+  <div class="sub" id="t_gS"></div>
+  <div class="demo">
+    <div class="row">
+      <label id="t_from"></label>
+      <select id="src"></select>
+      <label id="t_to"></label>
+      <select id="tgt"></select>
+      <span class="chk" onclick="tc()"><span id="cbox">☐</span> <span id="t_consent"></span></span>
+    </div>
+    <div id="res" class="res"></div>
+  </div>
+
+  <div class="guard">
+    <h3 id="t_unH"></h3>
+    <ul id="unlist"></ul>
+  </div>
+
+  <div class="note2" id="t_note"></div>
+  <footer id="t_foot"></footer>
+</div>
+
+<script>
+let lang="fa";
+const L=(fa,en)=>lang==="fa"?fa:en;
+let consent=false;
+
+const CONN=[
+  {n:"ZoomInfo", note:L("سازمانی، گران‌قیمت","Enterprise, pricey"), on:false},
+  {n:"Apollo.io", note:L("اقتصادی، ~$50–100/ماه","Economical, ~$50–100/mo"), on:false},
+  {n:"Lusha", note:L("اقتصادی","Economical"), on:false}
+];
+function conn(i){ CONN[i].on=!CONN[i].on; render(); }
+function tc(){ consent=!consent; render(); }
+
+const FIELDS=[
+  ["CompanyDomain",L("دامنهٔ شرکت","Company domain")],
+  ["CompanyName",L("نام شرکت","Company name")],
+  ["BusinessRole",L("سمت شغلی","Business role")],
+  ["PersonalEmail",L("ایمیل شخصی","Personal email")],
+  ["PersonalPhone",L("تلفن شخصی","Personal phone")],
+  ["CookieIdentity",L("هویت کوکی","Cookie identity")]
+];
+function classify(f){ return ["PersonalEmail","PersonalPhone","CookieIdentity","BrowsingHistory","MobileAdvertisingId","CrossPlatformIdentity"].includes(f)?"Personal":"Company"; }
+// همان منطق EnrichmentGovernanceService/DataClassGuard
+function evaluate(src,tgt,consent){
+  const targetPersonalContact = (tgt==="PersonalEmail"||tgt==="PersonalPhone");
+  if(targetPersonalContact && !consent) return [false, L("تبدیل به تماسِ شخصی بدونِ رضایتِ اثبات‌شده مجاز نیست (مثلِ Gmail→تلفن).","Personal-contact enrichment without proven consent is blocked (e.g. Gmail→phone).")];
+  if(["CookieIdentity","BrowsingHistory","MobileAdvertisingId","CrossPlatformIdentity"].includes(src) && targetPersonalContact)
+    return [false, L("کشفِ تماسِ شخصی از کوکی/هویتِ دیجیتال هرگز مجاز نیست.","Personal-contact discovery from cookie/digital identity is never allowed.")];
+  return [true, classify(tgt)==="Company"?L("غنی‌سازیِ سطحِ شرکت مجاز است.","Company-level enrichment allowed."):L("غنی‌سازیِ شخصیِ دارای رضایت مجاز است.","Consented personal enrichment allowed.")];
+}
+
+function render(){
+  document.documentElement.lang=lang;document.documentElement.dir=lang==="fa"?"rtl":"ltr";
+  const set=(id,fa,en)=>{const e=document.getElementById(id);if(e)e.textContent=L(fa,en);};
+  set("t_title","اتصالات غنی‌سازی داده","Data enrichment connections");
+  set("t_sub","Apollo · Lusha · ZoomInfo — با حاکمیت: تأیید + گاردِ داده + رضایت","Apollo · Lusha · ZoomInfo — governed: approval + data guard + consent");
+  set("t_cH","کانکتورها","Connectors");
+  set("t_cS","دکمهٔ اتصال در صفحهٔ تنظیمات. هر کانکتور فقط پس از تأییدِ مدیر فعال می‌شود.","Connect buttons in Settings. Each activates only after manager approval.");
+  set("t_gH","بررسی مجوز غنی‌سازی","Enrichment permission check");
+  set("t_gS","یک تبدیل را انتخاب کنید تا تصمیمِ زندهٔ سیستم را ببینید (همان منطقِ بک‌اند).","Pick a mapping to see the live decision (same as backend logic).");
+  set("t_from",L("از","From")); set("t_to",L("به","To"));
+  set("t_consent",L("رضایتِ اثبات‌شده دارد","Has proven consent"));
+  set("t_unH","آنچه پشتیبانی نمی‌شود","Not supported");
+  set("t_note","");
+
+  document.getElementById("conns").innerHTML=CONN.map((c,i)=>`
+    <div class="conn"><b>${c.n}</b><div class="note">${c.note}</div>
+      <span class="state ${c.on?"s-on":"s-no"}">${c.on?L("متصل · تأیید Enrichment","Connected · enrichment approved"):L("متصل نشده","Not connected")}</span>
+      <div class="scope">
+        <span class="y">✓</span> ${L("دادهٔ سطحِ شرکت (B2B)","Company-level (B2B)")}<br>
+        <span class="y">✓</span> ${L("دادهٔ شخصیِ دارای رضایت","Consented personal data")}<br>
+        <span class="n">✗</span> ${L("جیمیلِ شخصی → موبایلِ بدونِ رضایت","Personal Gmail → phone w/o consent")}
+      </div>
+      <button class="btn ${c.on?"ghost":""}" onclick="conn(${i})">${c.on?L("قطع","Disconnect"):L("اتصال","Connect ")+c.n}</button>
+    </div>`).join("");
+
+  const opts=FIELDS.map(f=>`<option value="${f[0]}">${f[1]}</option>`).join("");
+  const src=document.getElementById("src"), tgt=document.getElementById("tgt");
+  if(src.innerHTML==="") src.innerHTML=opts;
+  if(tgt.innerHTML==="") { tgt.innerHTML=opts; tgt.value="PersonalPhone"; src.value="PersonalEmail"; }
+  document.getElementById("cbox").textContent=consent?"☑":"☐";
+  src.onchange=render; tgt.onchange=render;
+  const [ok,msg]=evaluate(src.value,tgt.value,consent);
+  const res=document.getElementById("res");
+  res.className="res "+(ok?"ok":"no");
+  res.textContent=(ok?"✓ ":"✗ ")+msg;
+
+  const un=[
+    L("هویت‌یابیِ مخفیِ بازدیدکنندهٔ ناشناس (Cookie Syncing / Fingerprinting)","Covert de-anonymization of anonymous visitors (cookie syncing / fingerprinting)"),
+    L("تطبیقِ Identity Graph: مرورگر → جیمیل → موبایل","Identity-graph matching: browser → Gmail → phone"),
+    L("تزریقِ پیکسل به سایتِ دیگران برای «شکارِ هویت»","Injecting your pixel into others' sites to \u201chunt identity\u201d"),
+    L("تبدیلِ خودکارِ جیمیلِ شخصیِ اسکرپ‌شده به شمارهٔ موبایل بدونِ رضایت","Auto-converting a scraped personal Gmail to a mobile number without consent")
+  ];
+  document.getElementById("unlist").innerHTML=un.map(x=>`<li>${x}</li>`).join("");
+
+  document.getElementById("t_note").innerHTML=L(
+    "این کانکتورها <b>enrichmentِ سطحِ شرکت (B2B)</b> انجام می‌دهند و برای هر تماسِ شخصی <code>رضایتِ اثبات‌شده</code> لازم دارند. روش‌های «آنچه پشتیبانی نمی‌شود» تحتِ UAE PDPL/GDPR غیرقانونی‌اند، ToS پلتفرم‌ها را نقض می‌کنند و به بن‌شدنِ حساب و آسیبِ برند منجر می‌شوند؛ گاردِ داده در کد جلوی همه‌شان را می‌گیرد.",
+    "These connectors perform <b>company-level (B2B) enrichment</b> and require <code>proven consent</code> for any personal contact. The \u201cnot supported\u201d methods are unlawful under UAE PDPL/GDPR, breach platform ToS, and lead to account bans and brand damage; the data guard blocks all of them in code.");
+
+  document.getElementById("t_foot").textContent=L(
+    "برای افزودنِ ابزارِ دیگر: فقط نام، لینکِ رسمی، پلن، و اینکه شرکت حساب دارد یا نه کافی است. مسیرِ قانونیِ «تلفنِ مخاطب» = دعوت به opt-in / Lead Form / رضایتِ ثبت‌شده، سپس enrichmentِ دارای رضایت.",
+    "To add another tool: just the name, official link, plan, and whether the company has an account. The lawful path to a contact's phone = opt-in invite / lead form / recorded consent, then consented enrichment.");
+}
+function toggleLang(){lang=lang==="fa"?"en":"fa";render();}
+render();
+</script>
+</body>
+</html>

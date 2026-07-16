@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ماژول همکاران — رادار غربال اتصالات</title>
+<style>
+:root{
+  --bg:#0A0612;--bg2:#130B24;--panel:rgba(255,255,255,.045);
+  --gold:#E6B35A;--amber:#F0C674;--line:rgba(230,179,90,.18);
+  --text:#EDE7F6;--muted:#9E97B5;--safe:#4CAF7D;--review:#E0A94C;--ai:#C79BF0;--human:#5AC8E6;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Vazirmatn','Segoe UI',Tahoma,sans-serif;
+  background:radial-gradient(1300px 800px at 72% -14%,var(--bg2),var(--bg)) fixed;color:var(--text);min-height:100vh;line-height:1.6}
+.app{max-width:1080px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px;font-weight:700}
+.logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--gold),var(--amber));box-shadow:0 0 26px rgba(230,179,90,.45)}
+.brand small{display:block;color:var(--muted);font-weight:400;font-size:12px}
+.lang{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:7px 13px;cursor:pointer}
+main{padding:20px 24px 46px}
+h2{color:var(--amber);margin:0 0 4px}h3{color:var(--amber);font-size:15px;margin:22px 0 8px}
+.muted{color:var(--muted);font-size:13px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:15px;margin:10px 0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+label{font-size:12px;color:var(--muted);display:block;margin:6px 0 4px}
+input,select{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--text);border-radius:9px;padding:8px 11px;font-family:inherit;font-size:13px}
+button{background:linear-gradient(135deg,var(--gold),var(--amber));color:#20140a;border:0;border-radius:10px;padding:9px 16px;font-weight:700;cursor:pointer;font-size:13px}
+button.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+.chip{display:inline-block;font-size:12px;padding:4px 10px;border-radius:8px;border:1px solid var(--line);margin:3px 3px 0 0;cursor:pointer;color:var(--muted)}
+.chip.on{color:#20140a;background:linear-gradient(135deg,var(--gold),var(--amber));border-color:transparent;font-weight:700}
+.partner{border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:8px;background:rgba(255,255,255,.02)}
+.partner .top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.pill{font-size:12px;padding:3px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.perf{font-weight:700;color:var(--amber)}
+.match{border:1px solid var(--line);border-radius:11px;padding:10px;margin-top:7px;background:rgba(255,255,255,.02)}
+.match .h{display:flex;justify-content:space-between;align-items:center}
+.bar{height:7px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden;margin-top:6px}
+.fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--amber))}
+.reasons{margin:6px 0 0;padding-inline-start:18px;font-size:12px;color:var(--muted)}
+.tier{font-size:12px;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:8px 12px;margin-top:8px}
+.covered{color:var(--safe)}.notcov{color:var(--ai)}
+.audit{font-size:12px;color:var(--muted);margin-top:6px}
+footer{padding:18px 24px;color:var(--muted);font-size:12px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand"><div class="logo"></div>
+      <div><span id="bt"></span><small id="bs"></small></div>
+    </div>
+    <button class="lang" onclick="toggleLang()">EN / فا</button>
+  </header>
+  <main id="main"></main>
+  <footer id="foot"></footer>
+</div>
+
+<script>
+let lang="fa";
+const L=(fa,en)=>lang==="fa"?fa:en;
+const COVERED=["ar","fa","en","tr","fr","hi","local"];
+const ALL_LANGS=["ar","fa","en","tr","fr","hi","local","ru","zh"];
+let skillSel=["investment"], langSel=["ar","en"];
+let partners=[
+  {name:"سارا",type:"Expert",perf:92,langs:["ar","fa","en"],skills:["investment","acquisition"]},
+  {name:"علی",type:"Salesperson",perf:68,langs:["en","hi"],skills:["business-sale"]},
+  {name:"مهدی",type:"Agent",perf:55,langs:["fa"],skills:["investment"]}
+];
+
+function classify(kind,amt){
+  if(kind==="Investment"){if(amt>=50000&&amt<500000)return"InvestmentLow";if(amt>=500000&&amt<5000000)return"InvestmentMid";if(amt>=5000000&&amt<=100000000)return"InvestmentHigh";return"Unknown";}
+  if(kind==="Purchase")return(amt>=200000&&amt<=750000000)?"Purchase":"Unknown";
+  if(kind==="BusinessSale")return"BusinessSale";
+  return"OtherService";
+}
+function skillForTier(t){if(t.startsWith("Investment"))return"investment";if(t==="Purchase")return"acquisition";if(t==="BusinessSale")return"business-sale";return null;}
+function recommend(leadLang,tier){
+  return partners.map(p=>{
+    let s=0;const r=[];
+    const lm=p.langs.includes(leadLang);
+    if(lm){s+=30;r.push(L(`زبان ${leadLang} را دارد (+30)`,`speaks ${leadLang} (+30)`));}else r.push(L(`زبان ${leadLang} را ندارد`,`no ${leadLang}`));
+    const need=skillForTier(tier);
+    if(need&&p.skills.includes(need)){s+=25;r.push(L(`توانمندی «${need}» (+25)`,`skill «${need}» (+25)`));}
+    const perf=Math.round(p.perf*0.45);s+=perf;r.push(L(`نمرهٔ قبلی ${p.perf} → +${perf}`,`prior ${p.perf} → +${perf}`));
+    if((tier==="InvestmentHigh"||tier==="Purchase"||tier==="BusinessSale")&&p.perf<80){s-=20;r.push(L("طبقهٔ بزرگ اما نمره زیر ۸۰ (−۲۰)","big tier but score<80 (−20)"));}
+    return{name:p.name,score:Math.max(0,Math.min(100,s)),reasons:r};
+  }).sort((a,b)=>b.score-a.score);
+}
+
+function addPartner(){
+  const name=document.getElementById("p_name").value.trim();
+  const perf=parseInt(document.getElementById("p_perf").value)||0;
+  const type=document.getElementById("p_type").value;
+  if(!name){alert(L("نام لازم است","name required"));return;}
+  if(perf<0||perf>100){alert(L("نمره ۰ تا ۱۰۰","score 0..100"));return;}
+  partners.unshift({name,type,perf,langs:[...langSel],skills:[...skillSel]});
+  render();
+}
+function render(){
+  document.documentElement.lang=lang;document.documentElement.dir=lang==="fa"?"rtl":"ltr";
+  document.getElementById("bt").textContent=L("ماژول همکاران / فروشنده","Partners / Sales module");
+  document.getElementById("bs").textContent=L("توانمندی + نمرهٔ عملکرد → پیشنهاد لید · درصد/جایزه تحت نظر مدیر و Audit","skills + performance → lead suggestion · commissions under manager & audit");
+  document.getElementById("foot").textContent=L(
+    "پیش‌نمایش. زبان‌های کاورشده: عربی، فارسی، انگلیسی، ترکی، فرانسوی، هندی، لوکال (کارشناس+AI). بقیه فقط AI به زبان مشتری.",
+    "Preview. Covered: ar, fa, en, tr, fr, hi, local (expert+AI). Others AI-only, in the customer's language.");
+
+  const m=document.getElementById("main");
+  let h=`<h2>${L("همکاران","Partners")}</h2>
+  <p class="muted">${L("همکار را با توانمندی و نمرهٔ عملکردِ قبلی ثبت کنید؛ سیستم لیدِ مناسب را پیشنهاد می‌دهد.",
+    "Register a partner with skills and prior performance; the system suggests suitable leads.")}</p>`;
+
+  // فرم افزودن همکار
+  h+=`<div class="card">
+    <h3 style="margin-top:0">${L("ثبت همکار","Add partner")}</h3>
+    <div class="three">
+      <div><label>${L("نام","Name")}</label><input id="p_name" placeholder="${L("نام همکار","partner name")}"></div>
+      <div><label>${L("نوع","Type")}</label><select id="p_type"><option>Salesperson</option><option>Expert</option><option>Agent</option><option>Marketer</option><option>Referral</option></select></div>
+      <div><label>${L("نمرهٔ عملکردِ قبلی (۰–۱۰۰)","Prior performance (0–100)")}</label><input id="p_perf" type="number" value="80"></div>
+    </div>
+    <label>${L("زبان‌ها","Languages")}</label>
+    <div>${ALL_LANGS.map(c=>`<span class="chip ${langSel.includes(c)?"on":""}" onclick="toggleLang2('${c}')">${c}${COVERED.includes(c)?"":" ⚠"}</span>`).join("")}</div>
+    <label>${L("توانمندی‌ها","Skills")}</label>
+    <div>${["investment","acquisition","business-sale","salon","franchise"].map(s=>`<span class="chip ${skillSel.includes(s)?"on":""}" onclick="toggleSkill('${s}')">${s}</span>`).join("")}</div>
+    <div style="margin-top:10px"><button onclick="addPartner()">${L("ثبت همکار","Add partner")}</button></div>
+  </div>`;
+
+  // فهرست همکاران
+  h+=`<h3>${L("فهرست همکاران","Partner list")}</h3>`;
+  partners.forEach(p=>{
+    h+=`<div class="partner"><div class="top">
+      <b>${p.name} <span class="muted" style="font-weight:400">· ${p.type}</span></b>
+      <span class="perf">${L("عملکرد","perf")} ${p.perf}</span></div>
+      <div style="margin-top:6px">${p.langs.map(x=>`<span class="pill ${COVERED.includes(x)?"":"notcov"}">${x}</span>`).join("")}
+      ${p.skills.map(x=>`<span class="pill">${x}</span>`).join("")}</div>
+    </div>`;
+  });
+
+  // تخصیص لید بر اساس طبقهٔ مبلغ
+  h+=`<h3>${L("پیشنهاد تخصیص لید (بر اساس طبقهٔ مبلغ)","Lead assignment (by amount tier)")}</h3>
+  <div class="card">
+    <div class="three">
+      <div><label>${L("نوع معامله","Deal kind")}</label><select id="d_kind" onchange="render()">
+        <option value="Investment">${L("سرمایه‌گذاری","Investment")}</option>
+        <option value="Purchase">${L("خرید","Purchase")}</option>
+        <option value="BusinessSale">${L("فروش بیزینس","Business sale")}</option>
+        <option value="OtherService">${L("سایر سرویس‌ها","Other")}</option></select></div>
+      <div><label>${L("مبلغ (AED)","Amount (AED)")}</label><input id="d_amt" type="number" value="${window._amt||5000000}" onchange="setAmt(this.value)"></div>
+      <div><label>${L("زبان لید","Lead language")}</label><select id="d_lang" onchange="render()">${ALL_LANGS.map(c=>`<option>${c}</option>`).join("")}</select></div>
+    </div>`;
+
+  const kind=document.getElementById("d_kind")?.value||"Investment";
+  const amt=window._amt||5000000;
+  const leadLang=document.getElementById("d_lang")?.value||"ar";
+  const tier=classify(kind,amt);
+  const cov=COVERED.includes(leadLang);
+  h+=`<div class="tier">${L("طبقه","Tier")}: <b style="color:var(--amber)">${tier}</b>
+    ${tier==="BusinessSale"?" · "+L("تعهد فروش در ۳ ماه","3-month sale commitment"):""}
+    ${tier==="Unknown"?" · "+L("خارج از بازهٔ تعریف‌شده","outside defined range"):""}
+    · ${L("زبان","Language")}: <span class="${cov?"covered":"notcov"}">${leadLang} ${cov?L("(کاورشده: کارشناس+AI)","(covered: expert+AI)"):L("(کاورنشده: فقط AI به زبان مشتری)","(not covered: AI-only, in customer language)")}</span></div>`;
+
+  if(cov){
+    const recs=recommend(leadLang,tier);
+    recs.forEach((r,i)=>{
+      h+=`<div class="match"><div class="h"><b>${i===0?"⭐ ":""}${r.name}</b><span class="perf">${r.score}</span></div>
+        <div class="bar"><span class="fill" style="width:${r.score}%"></span></div>
+        <ul class="reasons">${r.reasons.map(x=>`<li>${x}</li>`).join("")}</ul></div>`;
+    });
+  }else{
+    h+=`<div class="match"><b class="notcov">🤖 ${L("زبان کاورنشده → این لید به هوش مصنوعی می‌رود و پیام به زبان خودِ مشتری ارسال می‌شود.",
+      "Language not covered → this lead goes to AI, messaging in the customer's own language.")}</b></div>`;
+  }
+  h+=`</div>`;
+
+  // توافق/درصد/جایزه تحت نظر مدیر و Audit
+  h+=`<h3>${L("توافق، درصد و جایزه","Agreement, commission & bonus")}</h3>
+  <div class="card">
+    <div class="three">
+      <div><label>${L("درصد پورسانت","Commission %")}</label><input type="number" value="7.5"></div>
+      <div><label>${L("جایزه (AED)","Bonus (AED)")}</label><input type="number" value="0"></div>
+      <div><label>${L("ارجاع قرارداد","Contract ref")}</label><input value="CONTRACT-2026-01"></div>
+    </div>
+    <div class="audit">🔒 ${L("این توافق تا «تأیید مدیر» + «ارجاع قرارداد» در وضعیت Draft می‌ماند و فعال نمی‌شود. هر تغییر ثبت (Audit) می‌شود.",
+      "This agreement stays Draft until manager approval + contract ref; every change is audited.")}</div>
+    <div style="margin-top:10px"><button class="ghost">${L("ثبت پیش‌نویس","Save draft")}</button>
+    <button>${L("تأیید مدیر و فعال‌سازی","Manager approve & activate")}</button></div>
+  </div>`;
+
+  m.innerHTML=h;
+}
+function setAmt(v){window._amt=parseFloat(v)||0;render();}
+function toggleLang2(c){langSel.includes(c)?langSel=langSel.filter(x=>x!==c):langSel.push(c);render();}
+function toggleSkill(s){skillSel.includes(s)?skillSel=skillSel.filter(x=>x!==s):skillSel.push(s);render();}
+function toggleLang(){lang=lang==="fa"?"en":"fa";render();}
+render();
+</script>
+</body>
+</html>

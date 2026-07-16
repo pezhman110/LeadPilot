@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>فرصت‌های انجمن و فروم — LeadPilot</title>
+<style>
+:root{
+  --void:#07060D;--panel:#0F0C1A;--panel2:#151024;--edge:rgba(214,178,102,.16);
+  --gold:#D6B266;--amber:#F2CE80;--ink:#ECE7F5;--dim:#9C93B4;
+  --ok:#54B78A;--warn:#E4A94C;--bad:#E1685E;--info:#5BB6D6;--idle:#4A4460;
+}
+*{box-sizing:border-box}
+body{margin:0;background:
+  radial-gradient(900px 500px at 82% -10%,#1a1330 0%,transparent 60%),
+  radial-gradient(700px 500px at 0% 110%,#12182b 0%,transparent 55%),var(--void);
+  color:var(--ink);font-family:'Vazirmatn','Segoe UI',Tahoma,sans-serif;line-height:1.6;min-height:100vh}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px 60px}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 0;border-bottom:1px solid var(--edge)}
+.mark{display:flex;align-items:center;gap:12px}
+.logo{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,var(--gold),var(--amber));box-shadow:0 0 24px rgba(214,178,102,.4)}
+.mark b{font-size:15px}.mark small{display:block;color:var(--dim);font-weight:400;font-size:12px}
+.lang{background:transparent;border:1px solid var(--edge);color:var(--ink);border-radius:9px;padding:7px 13px;cursor:pointer;font-family:inherit;font-size:12px}
+h2{color:var(--amber);font-size:13px;letter-spacing:1.5px;text-transform:uppercase;margin:22px 0 4px;font-weight:600}
+.sub{color:var(--dim);font-size:12.5px;margin-bottom:12px}
+.opp{background:var(--panel);border:1px solid var(--edge);border-radius:13px;padding:14px 16px;margin-bottom:10px}
+.opp .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.opp .meta{font-size:11px;color:var(--dim)}
+.opp .q{font-size:13.5px;margin:6px 0}
+.score{text-align:center;flex:0 0 auto}
+.score b{display:block;font-size:24px;color:var(--amber);line-height:1}
+.score span{font-size:10px;color:var(--dim)}
+.urg{font-size:10px;padding:2px 8px;border-radius:20px}
+.urg.High{color:var(--bad);background:rgba(225,104,94,.12)}
+.urg.Medium{color:var(--warn);background:rgba(228,169,76,.12)}
+.reasons{font-size:11px;color:var(--dim);margin-top:6px;line-height:1.9}
+.reasons .p{color:var(--ok)}.reasons .n{color:var(--bad)}
+.btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.b{font-size:11px;padding:6px 11px;border-radius:8px;border:1px solid var(--edge);background:var(--panel2);color:var(--amber);cursor:pointer}
+.b.src{color:var(--info)}
+.policy{font-size:10.5px;padding:2px 9px;border-radius:20px;color:var(--ok);background:rgba(84,183,138,.1);margin-top:4px;display:inline-block}
+.guard{background:var(--panel);border:1px solid var(--edge);border-radius:13px;padding:14px 16px}
+.gl{display:flex;align-items:center;gap:8px;font-size:12px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.gl:last-child{border-bottom:0}
+.gl .d{width:8px;height:8px;border-radius:50%}
+.gl.ok .d{background:var(--ok)}.gl.no .d{background:var(--bad)}
+.gl.no{color:var(--bad)}
+.mx{display:flex;flex-direction:column;gap:5px}
+.mxr{display:flex;justify-content:space-between;font-size:12px;padding:7px 11px;border-radius:9px;border:1px solid var(--edge);background:var(--panel)}
+.tag{font-size:10.5px;padding:2px 9px;border-radius:20px}
+.tag.y{color:var(--ok);background:rgba(84,183,138,.12)}
+.tag.n{color:var(--bad);background:rgba(225,104,94,.12)}
+.note{font-size:11.5px;color:var(--dim);border:1px dashed var(--edge);border-radius:11px;padding:11px 15px;margin-top:14px}
+.note b{color:var(--amber)}
+code{background:rgba(255,255,255,.05);padding:1px 6px;border-radius:5px;color:var(--amber);font-size:11px}
+footer{color:var(--dim);font-size:11px;border-top:1px solid var(--edge);margin-top:26px;padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark"><div class="logo"></div>
+      <div><b id="t_title"></b><small id="t_sub"></small></div></div>
+    <button class="lang" onclick="toggleLang()">EN / فارسی</button>
+  </header>
+
+  <h2 id="t_fH"></h2>
+  <div class="sub" id="t_fS"></div>
+  <div id="feed"></div>
+
+  <h2 id="t_gH"></h2>
+  <div class="sub" id="t_gS"></div>
+  <div class="guard" id="guard"></div>
+
+  <h2 id="t_mH"></h2>
+  <div class="sub" id="t_mS"></div>
+  <div class="mx" id="matrix"></div>
+
+  <div class="note" id="t_note"></div>
+  <footer id="t_foot"></footer>
+</div>
+
+<script>
+let lang="fa";
+const L=(fa,en)=>lang==="fa"?fa:en;
+
+const OPP=[
+  {plat:"Reddit", comm:"r/dubai", ind:L("خرید کسب‌وکار","Business acquisition"), loc:"Dubai", langq:"EN",
+   q:L("خرید یک کسب‌وکار فعال در دبی با بودجهٔ ۵۰۰ هزار درهم؟","Buying an operating business in Dubai with 500k AED budget?"),
+   score:88, urg:"High", reasons:[["p",L("قصد خرید کسب‌وکار","Wants to buy business")],["p",L("ذکر بودجه","Mentioned budget")],["p",L("اعلام شهر: دبی","Location: Dubai")],["p",L("سؤال قیمت","Asked pricing")]],
+   policy:L("پاسخ عمومی مجاز","Public reply permitted"), team:L("تیم سرمایه‌گذاری","Investment team")},
+  {plat:"Facebook", comm:"Marina Moms", ind:L("سالن/هوم‌سرویس","Salon/Home service"), loc:"Dubai Marina", langq:"EN",
+   q:L("بهترین هوم‌سرویس نظافت در مارینا برای این هفته؟","Best cleaning home-service in Marina for this week?"),
+   score:74, urg:"Medium", reasons:[["p",L("درخواست معرفی","Provider recommendation")],["p",L("منطقه: مارینا","Area: Marina")],["p",L("زمان: این هفته","This week")]],
+   policy:L("قواعد گروه: تأیید مدیر","Group rules: admin approval"), team:L("تیم خدمات","Services team")},
+  {plat:"Quora", comm:"Dubai", ind:L("سرمایه‌گذاری","Investment"), loc:"Dubai", langq:"EN",
+   q:L("بحث عمومی دربارهٔ روند بازار املاک دبی","General discussion about Dubai property market trend"),
+   score:22, urg:"Low", reasons:[["n",L("اظهارنظر عمومی","General comment")],["n",L("بحث خبری","News discussion")]],
+   policy:L("فقط پایش","Monitoring only"), team:"—"}
+];
+
+function render(){
+  document.documentElement.lang=lang;document.documentElement.dir=lang==="fa"?"rtl":"ltr";
+  const set=(id,fa,en)=>{const e=document.getElementById(id);if(e)e.textContent=L(fa,en);};
+  set("t_title","فرصت‌های انجمن و فروم","Community & forum opportunities");
+  set("t_sub","سؤالِ عمومی = سیگنالِ تقاضا، نه اجازهٔ استخراجِ هویت یا تبلیغِ مستقیم","Public question = demand signal, not permission to extract identity or direct-market");
+  set("t_fH","Opportunity Feed","Opportunity feed");
+  set("t_fS","سؤال‌های پرقصد. تا اقدامِ داوطلبانهٔ مخاطب، فقط Opportunity است — نه Contact قابلِ ارسال.","High-intent questions. Until the person acts voluntarily, it's only an Opportunity — not a contactable lead.");
+  set("t_gH","کنترل کیفیت و اعتبار برند","Response quality & brand guard");
+  set("t_gS","پیش از انتشارِ هر پاسخ اعمال می‌شود.","Applied before any response is published.");
+  set("t_mH","تصمیم درباره روش‌ها","Decision on proposed methods");
+  set("t_mS","","");
+
+  document.getElementById("feed").innerHTML=OPP.map((o,i)=>`
+    <div class="opp">
+      <div class="top">
+        <div>
+          <div class="meta">${o.plat} · ${o.comm} · ${o.ind} · ${o.loc} · ${o.langq}</div>
+          <div class="q">${o.q}</div>
+          <span class="policy">${o.policy}</span>
+          <div class="reasons">${o.reasons.map(r=>`<span class="${r[0]}">${r[0]==="p"?"+":"−"} ${r[1]}</span>`).join(" · ")}</div>
+        </div>
+        <div class="score"><b>${o.score}</b><span>intent</span><br><span class="urg ${o.urg}">${o.urg}</span></div>
+      </div>
+      <div class="btns">
+        <button class="b src">${L("مشاهده منبع","View source")}</button>
+        <button class="b">${L("تخصیص به کارشناس","Assign")}</button>
+        <button class="b">${L("تهیه پاسخ","Draft response")}</button>
+        <button class="b">${L("ارسال برای تأیید","Send for approval")}</button>
+        <button class="b">${L("ثبت پاسخ منتشرشده","Record published URL")}</button>
+        <button class="b">${L("بی‌ارتباط","Irrelevant")}</button>
+      </div>
+    </div>`).join("");
+
+  const gl=[
+    [true,L("معرفی شفاف کارشناس","Specialist identity disclosed")],
+    [true,L("بدون ادعای مشتریِ جعلی","No fake customer claim")],
+    [true,L("بدون تضمین سود/نتیجه","No profit/result guarantee")],
+    [true,L("بدون تخریب رقیب","No competitor disparagement")],
+    [true,L("بدون فشار برای شماره","No pressure for phone number")],
+    [true,L("لینک فقط به دامنهٔ رسمی","Links to official domain only")],
+    [false,L("پاسخِ یکسان زیر ده‌ها پست → رد","Same reply under many posts → blocked")]
+  ];
+  document.getElementById("guard").innerHTML=gl.map(g=>
+    `<div class="gl ${g[0]?"ok":"no"}"><span class="d"></span>${g[1]}</div>`).join("");
+
+  const MX=[
+    [L("پایش سؤال‌های عمومیِ مرتبط","Monitor relevant public questions"),"y"],
+    [L("رتبه‌بندی سیگنال‌های خرید","Rank buy-intent signals"),"y"],
+    [L("پاسخ مفید و شفاف با حساب رسمی","Helpful transparent reply, official account"),"y"],
+    [L("ارجاع داوطلبانه به فرم/واتساپ/رزرو","Voluntary handoff to form/WhatsApp/booking"),"y"],
+    [L("API رسمی Reddit و پلتفرم‌ها","Official Reddit/platform APIs"),"y"],
+    [L("استخراج انبوه شناسهٔ کاربران","Bulk extraction of user IDs"),"n"],
+    [L("تبدیل نام مستعار به Gmail/موبایل","Alias → Gmail/mobile"),"n"],
+    [L("حساب جعلی «نجات‌دهندهٔ دلسوز»","Fake \u201chelpful savior\u201d account"),"n"],
+    [L("ارسال انبوه دایرکت به سؤال‌کنندگان","Bulk DM to askers"),"n"],
+    [L("دورزدن محدودیت گروه/پلتفرم","Bypassing group/platform limits"),"n"]
+  ];
+  document.getElementById("matrix").innerHTML=MX.map(r=>{
+    const lbl=r[1]==="y"?L("اضافه می‌شود","Added"):L("اضافه نمی‌شود","Rejected");
+    return `<div class="mxr"><span>${r[0]}</span><span class="tag ${r[1]}">${lbl}</span></div>`;
+  }).join("");
+
+  document.getElementById("t_note").innerHTML=L(
+    "روشِ «نجات‌دهندهٔ دلسوز» با حسابِ جعلی = تبلیغِ پنهان و جعلِ تجربهٔ مشتری؛ برای شرکتِ ۲۶ساله ریسکِ اعتباریِ بالا و <b>مطلقاً رد</b>. نسخهٔ مجاز: پاسخِ شفافِ کارشناسِ معرفی‌شده که کاربر را به دامنهٔ رسمی می‌برد و تصمیم را به او واگذار می‌کند. Direct فقط وقتی خودِ کاربر درخواست کند یا قبلاً ارتباط گرفته باشد.",
+    "The fake \u201chelpful savior\u201d account = hidden ads and fabricated testimony; for a 26-year company it's a high reputational risk and <b>absolutely rejected</b>. Allowed version: a transparent named-specialist reply that routes to the official domain and leaves the decision to the person. DM only when the user asks or has already engaged.");
+
+  document.getElementById("t_foot").textContent=L(
+    "خروجی Apify/Monitoring اول از این خط می‌گذرد: Raw observation → Source validation → Personal-data classification → Allowed-field filtering → Dedup → Opportunity. فیلدهای شخصی حذف می‌شوند؛ سیستم پیش‌فرض ایمیل/تلفن/هویتِ واقعیِ کاربر را از Enrichment درخواست نمی‌کند.",
+    "Apify/Monitoring output first passes: Raw observation → Source validation → Personal-data classification → Allowed-field filtering → Dedup → Opportunity. Personal fields are dropped; the system never requests users' email/phone/real identity from enrichment by default.");
+}
+function toggleLang(){lang=lang==="fa"?"en":"fa";render();}
+render();
+</script>
+</body>
+</html>

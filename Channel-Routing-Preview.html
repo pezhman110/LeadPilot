@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>موتور مسیریابی کانال — LeadPilot</title>
+<style>
+:root{
+  --void:#07060D;--panel:#0F0C1A;--panel2:#151024;--edge:rgba(214,178,102,.16);
+  --gold:#D6B266;--amber:#F2CE80;--ink:#ECE7F5;--dim:#9C93B4;
+  --ok:#54B78A;--warn:#E4A94C;--bad:#E1685E;--info:#5BB6D6;--idle:#4A4460;
+}
+*{box-sizing:border-box}
+body{margin:0;background:
+  radial-gradient(900px 500px at 82% -10%,#1a1330 0%,transparent 60%),
+  radial-gradient(700px 500px at 0% 110%,#12182b 0%,transparent 55%),var(--void);
+  color:var(--ink);font-family:'Vazirmatn','Segoe UI',Tahoma,sans-serif;line-height:1.6;min-height:100vh}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px 60px}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 0;border-bottom:1px solid var(--edge)}
+.mark{display:flex;align-items:center;gap:12px}
+.logo{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,var(--gold),var(--amber));box-shadow:0 0 24px rgba(214,178,102,.4)}
+.mark b{font-size:15px}.mark small{display:block;color:var(--dim);font-weight:400;font-size:12px}
+.lang{background:transparent;border:1px solid var(--edge);color:var(--ink);border-radius:9px;padding:7px 13px;cursor:pointer;font-family:inherit;font-size:12px}
+h2{color:var(--amber);font-size:13px;letter-spacing:1.5px;text-transform:uppercase;margin:22px 0 4px;font-weight:600}
+.sub{color:var(--dim);font-size:12.5px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--edge);border-radius:13px;padding:14px 16px}
+.card h3{margin:0 0 10px;font-size:13px;color:var(--ink)}
+.ch{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12.5px}
+.ch:last-child{border-bottom:0}
+.flags{display:flex;gap:5px}
+.flag{width:26px;height:22px;border-radius:6px;display:grid;place-items:center;font-size:11px;cursor:pointer;border:1px solid var(--edge);color:var(--dim);background:var(--panel2)}
+.flag.on{color:#231703;background:linear-gradient(135deg,var(--gold),var(--amber));border-color:transparent;font-weight:700}
+.decide{background:linear-gradient(135deg,var(--gold),var(--amber));color:#231703;border:0;border-radius:9px;padding:10px 18px;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px;margin-top:12px}
+.result{margin-top:12px;border-radius:12px;padding:13px 15px;border:1px solid var(--edge);background:var(--panel)}
+.result.ok{border-color:var(--ok)}.result.rev{border-color:var(--warn)}.result.no{border-color:var(--bad)}
+.result b{font-size:15px}
+.result.ok b{color:var(--ok)}.result.rev b{color:var(--warn)}.result.no b{color:var(--bad)}
+.trail{margin-top:8px}
+.step{display:flex;align-items:center;gap:8px;font-size:12px;padding:3px 0}
+.dot{width:8px;height:8px;border-radius:50%;flex:0 0 8px}
+.dot.p{background:var(--ok)}.dot.x{background:var(--bad)}.dot.w{background:var(--warn)}
+.legend{font-size:11px;color:var(--dim);margin-top:4px}
+.conf{display:grid;grid-template-columns:1fr;gap:6px;margin-top:6px}
+.confrow{display:flex;justify-content:space-between;align-items:center;font-size:12px;border:1px solid var(--edge);border-radius:9px;padding:8px 11px;background:var(--panel)}
+.badge{font-size:10.5px;padding:2px 9px;border-radius:20px}
+.badge.v{color:var(--ok);background:rgba(84,183,138,.12)}
+.badge.h{color:var(--info);background:rgba(91,182,214,.12)}
+.badge.r{color:var(--warn);background:rgba(228,169,76,.12)}
+.badge.x{color:var(--bad);background:rgba(225,104,94,.12)}
+.note{font-size:11.5px;color:var(--dim);border:1px dashed var(--edge);border-radius:11px;padding:11px 15px;margin-top:14px}
+.note b{color:var(--amber)}
+code{background:rgba(255,255,255,.05);padding:1px 6px;border-radius:5px;color:var(--amber);font-size:11px}
+footer{color:var(--dim);font-size:11px;border-top:1px solid var(--edge);margin-top:26px;padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark"><div class="logo"></div>
+      <div><b id="t_title"></b><small id="t_sub"></small></div></div>
+    <button class="lang" onclick="toggleLang()">EN / فارسی</button>
+  </header>
+
+  <h2 id="t_engH"></h2>
+  <div class="sub" id="t_engS"></div>
+  <div class="grid">
+    <div class="card">
+      <h3 id="t_chanH"></h3>
+      <div id="chans"></div>
+      <div class="legend" id="t_legend"></div>
+      <button class="decide" onclick="decide()" id="t_dec"></button>
+      <div id="result"></div>
+    </div>
+    <div class="card">
+      <h3 id="t_idH"></h3>
+      <div class="conf" id="idlist"></div>
+      <div class="note" style="margin-top:12px" id="t_idnote"></div>
+    </div>
+  </div>
+
+  <div class="note" id="t_note"></div>
+  <footer id="t_foot"></footer>
+</div>
+
+<script>
+let lang="fa";
+const L=(fa,en)=>lang==="fa"?fa:en;
+
+// هر کانال با فلگ‌های تصمیم. C=رضایت، W=پنجرهٔ باز، S=Suppress، H=سالم
+const CH=[
+  {code:"WhatsApp",   pref:true,  C:true,  W:false, S:false, H:true, needWindow:false, needTemplate:true},
+  {code:"Email",      pref:false, C:true,  W:false, S:false, H:true, needWindow:false, needTemplate:false},
+  {code:"InstagramDm",pref:false, C:false, W:true,  S:false, H:true, needWindow:true,  needTemplate:false}
+];
+const ID=[
+  {ch:"Instagram", ev:"OAuth", conf:"Verified"},
+  {ch:"WhatsApp",  ev:L("اعلام در فرم","Self-declared"), conf:"HighConfidence"},
+  {ch:"Facebook",  ev:L("لینک عمومی","Public link"), conf:"NeedsReview"},
+  {ch:"TikTok",    ev:L("شباهت عکس","Photo similarity"), conf:"Rejected"}
+];
+
+function tf(i,k){ CH[i][k]=!CH[i][k]; render(); }
+
+// همان منطق ChannelRoutingEngine بک‌اند
+function evalCh(c){
+  if(c.code==="TikTokDm") return "NeedsHumanApproval";
+  if(c.S) return "Blocked";
+  if(!c.C) return "NeedsConsent";
+  if(!c.H) return "ProviderUnavailable";
+  if(c.needWindow && !c.W) return "PlatformWindowClosed";
+  if(c.needTemplate && !c.W) return "NeedsHumanApproval";
+  return "Permitted";
+}
+function decide(){
+  window._decided=true; render();
+}
+
+function render(){
+  document.documentElement.lang=lang;document.documentElement.dir=lang==="fa"?"rtl":"ltr";
+  const q=(id,fa,en)=>{const e=document.getElementById(id);if(e)e.textContent=L(fa,en);};
+  q("t_title","موتور مسیریابی کانال","Channel routing engine");
+  q("t_sub","کنترل‌شده، نه ارسالِ کورکورانه · رضایتِ مستقلِ هر کانال","Controlled, not blind · independent per-channel consent");
+  q("t_engH","تصمیم مسیریابی","Routing decision");
+  q("t_engS","ترتیب: کانالِ ترجیحی → جایگزینِ مجاز → بررسیِ کارشناس. جایگزین باید رضایتِ مستقل داشته باشد.",
+    "Order: preferred → permitted fallback → human review. Fallback needs independent consent.");
+  q("t_chanH","کانال‌ها و شرایط","Channels and conditions");
+  q("t_idH","اطمینان هویت","Identity confidence");
+  q("t_dec","تصمیم بگیر","Decide");
+  q("t_legend","C=رضایت · W=پنجرهٔ باز · S=توقف سراسری · H=سالم","C=consent · W=open window · S=suppressed · H=healthy");
+
+  const cs=document.getElementById("chans"); cs.innerHTML="";
+  CH.forEach((c,i)=>{
+    const el=document.createElement("div"); el.className="ch";
+    el.innerHTML=`<span>${c.code}${c.pref?` <span style="color:var(--gold);font-size:10px">★ ${L("ترجیحی","preferred")}</span>`:""}</span>
+      <span class="flags">
+        <span class="flag ${c.C?"on":""}" onclick="tf(${i},'C')">C</span>
+        <span class="flag ${c.W?"on":""}" onclick="tf(${i},'W')">W</span>
+        <span class="flag ${c.S?"on":""}" onclick="tf(${i},'S')">S</span>
+        <span class="flag ${c.H?"on":""}" onclick="tf(${i},'H')">H</span>
+      </span>`;
+    cs.appendChild(el);
+  });
+
+  const res=document.getElementById("result");
+  if(window._decided){
+    // ترتیب: pref اول، بعد بقیه
+    const order=[...CH].sort((a,b)=>(b.pref?1:0)-(a.pref?1:0));
+    let chosen=null, isFallback=false;
+    const trail=[];
+    for(const c of order){
+      const st=evalCh(c);
+      trail.push([c.code,st]);
+      if(st==="Permitted" && !chosen){ chosen=c; isFallback=!c.pref; }
+    }
+    let cls,txt,desc,mode;
+    if(chosen){
+      mode = (!isFallback) ? L("خودکار (مجاز)","Automatic (allowed)") : L("بررسی کارشناس","Human review");
+      cls = isFallback?"rev":"ok";
+      txt = chosen.code+" — "+mode;
+      desc = isFallback?L("کانالِ جایگزینِ مجاز (رضایتِ مستقل دارد).","Permitted fallback (independent consent).")
+                       :L("کانالِ ترجیحیِ مجاز.","Preferred channel permitted.");
+    } else { cls="no"; txt=L("هیچ کانالِ خودکاری مجاز نیست","No automatic channel permitted"); desc=L("بررسیِ کارشناس لازم است.","Human review required."); }
+    res.className="result "+cls;
+    res.innerHTML=`<b>${txt}</b><div class="sub" style="margin:4px 0 0">${desc}</div>
+      <div class="trail">${trail.map(t=>{
+        const d=t[1]==="Permitted"?"p":(t[1]==="NeedsHumanApproval"||t[1]==="NeedsConsent"?"w":"x");
+        return `<div class="step"><span class="dot ${d}"></span>${t[0]} · ${t[1]}</div>`;}).join("")}</div>`;
+  } else res.innerHTML="";
+
+  // identity
+  const idl=document.getElementById("idlist"); idl.innerHTML="";
+  const map={Verified:["v",L("قابل ادغام","mergeable")],HighConfidence:["h",L("تأیید لازم","needs approval")],
+             NeedsReview:["r",L("تأیید کارشناس","agent review")],Rejected:["x",L("رد — ادغام نمی‌شود","rejected")]};
+  ID.forEach(x=>{
+    const m=map[x.conf];
+    const el=document.createElement("div"); el.className="confrow";
+    el.innerHTML=`<span>${x.ch} · <span style="color:var(--dim)">${x.ev}</span></span><span class="badge ${m[0]}">${x.conf} · ${m[1]}</span>`;
+    idl.appendChild(el);
+  });
+  document.getElementById("t_idnote").innerHTML=L(
+    "شباهتِ عکس/نام هرگز ادغام نمی‌شود. اتصالِ کم‌اطمینان نیازمندِ تأییدِ انسانی است.",
+    "Photo/name similarity is never merged. Low-confidence links need human approval.");
+
+  document.getElementById("t_note").innerHTML=L(
+    "<b>Global Suppression</b> بر همهٔ Connectorها اولویت دارد: اگر مخاطب در هر کانال/CRM توقف خواست، پیش از هر ارسالِ بعدی بررسی می‌شود؛ دامنه‌اش (فقط همان کانال یا کلِ بازاریابی) ثبت می‌شود. Fallback فقط با رضایتِ مستقلِ کانال و در خطای فنی/ترجیحِ ثبت‌شده — نه برای دورزدنِ block/opt-out/rate-limit/پنجرهٔ پلتفرم.",
+    "<b>Global Suppression</b> takes priority over all connectors: an opt-out on any channel/CRM is checked before every send; its scope (channel-only or all-marketing) is recorded. Fallback only with the channel's independent consent, on technical failure or recorded preference — never to bypass block/opt-out/rate-limit/platform window.");
+
+  document.getElementById("t_foot").textContent=L(
+    "قواعدِ کانال: اینستاگرام فقط پاسخ در پنجرهٔ ورودی؛ واتساپ آغاز با Template تأییدشده؛ تلگرام فقط کاربرِ آغازکننده؛ تیک‌تاک بدونِ فرضِ DM خودکار (فقط Discovery/Lead Form/انتقال). یک مسیرِ اصلی برای هر حساب+کانال؛ پشتیبان فقط با فعال‌سازیِ دستی، نه همزمان با اصلی.",
+    "Channel rules: Instagram reply-in-window only; WhatsApp initiate via approved template; Telegram user-initiated only; TikTok no assumed auto-DM (discovery/lead-form/handoff only). One primary path per account+channel; fallback manual-only, never simultaneous with primary.");
+}
+function toggleLang(){lang=lang==="fa"?"en":"fa";render();}
+render();
+</script>
+</body>
+</html>

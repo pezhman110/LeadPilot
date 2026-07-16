@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>کنسول ارتباطات فروش — LeadPilot</title>
+<style>
+:root{
+  --void:#07060D;--panel:#0F0C1A;--panel2:#151024;--edge:rgba(214,178,102,.16);
+  --gold:#D6B266;--amber:#F2CE80;--ink:#ECE7F5;--dim:#9C93B4;
+  --ok:#54B78A;--warn:#E4A94C;--bad:#E1685E;--info:#5BB6D6;--idle:#4A4460;
+}
+*{box-sizing:border-box}
+body{margin:0;background:
+  radial-gradient(900px 500px at 82% -10%,#1a1330 0%,transparent 60%),
+  radial-gradient(700px 500px at 0% 110%,#12182b 0%,transparent 55%),var(--void);
+  color:var(--ink);font-family:'Vazirmatn','Segoe UI',Tahoma,sans-serif;line-height:1.6;min-height:100vh}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px 60px}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 0;border-bottom:1px solid var(--edge)}
+.mark{display:flex;align-items:center;gap:12px}
+.logo{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,var(--gold),var(--amber));box-shadow:0 0 24px rgba(214,178,102,.4)}
+.mark b{font-size:15px}.mark small{display:block;color:var(--dim);font-weight:400;font-size:12px}
+.lang{background:transparent;border:1px solid var(--edge);color:var(--ink);border-radius:9px;padding:7px 13px;cursor:pointer;font-family:inherit;font-size:12px}
+h2{color:var(--amber);font-size:13px;letter-spacing:1.5px;text-transform:uppercase;margin:24px 0 4px;font-weight:600}
+.sub{color:var(--dim);font-size:12.5px;margin-bottom:12px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 14px}
+.tab{padding:8px 13px;border-radius:9px;border:1px solid var(--edge);background:var(--panel);cursor:pointer;font-size:12.5px;color:var(--dim);display:flex;align-items:center;gap:6px}
+.tab.on{color:#231703;background:linear-gradient(135deg,var(--gold),var(--amber));font-weight:700;border-color:transparent}
+.tab .badge{font-size:10px;background:rgba(0,0,0,.15);padding:1px 6px;border-radius:10px}
+.card{background:var(--panel);border:1px solid var(--edge);border-radius:13px;padding:14px 16px;margin-bottom:10px}
+.lead{display:grid;grid-template-columns:36px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.lead:last-child{border-bottom:0}
+.av{width:34px;height:34px;border-radius:50%;background:rgba(214,178,102,.1);border:1px solid var(--edge);display:grid;place-items:center;color:var(--gold);font-size:13px}
+.lead .who b{font-size:13.5px}.lead .who small{color:var(--dim);font-size:11px}
+.consent{font-size:10.5px;padding:2px 8px;border-radius:20px;border:1px solid}
+.consent.ok{color:var(--ok);border-color:rgba(84,183,138,.4);background:rgba(84,183,138,.08)}
+.mini{background:transparent;border:1px solid var(--edge);color:var(--amber);border-radius:8px;padding:6px 11px;cursor:pointer;font-family:inherit;font-size:12px}
+.mini:hover{background:rgba(214,178,102,.08)}
+.toggle{display:inline-flex;border:1px solid var(--edge);border-radius:9px;overflow:hidden}
+.toggle button{background:transparent;border:0;color:var(--dim);padding:6px 13px;cursor:pointer;font-family:inherit;font-size:12px}
+.toggle button.on{background:rgba(214,178,102,.14);color:var(--amber);font-weight:700}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 0}
+label{font-size:12px;color:var(--dim);min-width:120px}
+input,select,textarea{background:var(--panel2);border:1px solid var(--edge);color:var(--ink);border-radius:8px;padding:8px 11px;font-family:inherit;font-size:12.5px;flex:1;min-width:120px}
+textarea{width:100%;min-height:64px;resize:vertical}
+.btn{background:linear-gradient(135deg,var(--gold),var(--amber));color:#231703;border:0;border-radius:9px;padding:9px 16px;font-weight:700;cursor:pointer;font-family:inherit;font-size:12.5px}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--edge);font-weight:500}
+.crm{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.crmc{border:1px solid var(--edge);border-radius:11px;padding:11px 13px;background:var(--panel)}
+.crmc b{font-size:13px}.crmc .st{font-size:11px;color:var(--dim);display:block;margin:3px 0 8px}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-inline-end:5px;background:var(--idle);vertical-align:middle}
+.dot.on{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.pb{font-size:12px;color:var(--dim);line-height:1.9}
+.pb b{color:var(--ink)}
+.note{font-size:11.5px;color:var(--dim);border:1px dashed var(--edge);border-radius:11px;padding:11px 15px;margin-top:14px}
+.note b{color:var(--amber)}
+.sent{font-size:11.5px;color:var(--ok);margin-top:6px}
+.hide{display:none}
+code{background:rgba(255,255,255,.05);padding:1px 6px;border-radius:5px;color:var(--amber);font-size:11px}
+footer{color:var(--dim);font-size:11px;border-top:1px solid var(--edge);margin-top:30px;padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark"><div class="logo"></div>
+      <div><b id="t_title"></b><small id="t_sub"></small></div></div>
+    <button class="lang" onclick="toggleLang()">EN / فارسی</button>
+  </header>
+
+  <h2 id="t_chanH"></h2>
+  <div class="sub" id="t_chanS"></div>
+  <div class="tabs" id="tabs"></div>
+
+  <div id="pane_inbox">
+    <div class="card" id="inbox"></div>
+  </div>
+
+  <div id="pane_ig" class="hide">
+    <h2 id="t_igH"></h2>
+    <div class="sub" id="t_igS"></div>
+    <div class="card">
+      <div class="row"><label id="t_igkw"></label><input id="ig_kw" placeholder="قیمت / price"></div>
+      <div class="row"><label id="t_igtext"></label><input id="ig_text" placeholder="متن پاسخ عمومی + دعوت به DM"></div>
+      <div class="row"><label id="t_igmode"></label>
+        <span class="toggle"><button class="on" id="ig_auto" onclick="igMode('auto')"></button><button id="ig_manual" onclick="igMode('manual')"></button></span>
+      </div>
+      <div class="row"><button class="btn" onclick="addRule()" id="t_igadd"></button></div>
+      <div id="ig_list" class="pb"></div>
+    </div>
+  </div>
+
+  <div id="pane_crm" class="hide">
+    <h2 id="t_crmH"></h2>
+    <div class="sub" id="t_crmS"></div>
+    <div class="crm" id="crm"></div>
+  </div>
+
+  <div id="pane_settings" class="hide">
+    <h2 id="t_setH"></h2>
+    <div class="sub" id="t_setS"></div>
+    <div class="card" id="settings"></div>
+  </div>
+
+  <div class="note" id="t_note"></div>
+  <footer id="t_foot"></footer>
+</div>
+
+<script>
+let lang="fa";
+const L=(fa,en)=>lang==="fa"?fa:en;
+let tab="inbox", igModeVal="auto";
+
+// کانال‌ها — هر کدام نسخهٔ اختصاصی. برخی «فقط سیگنال» = بدون ارسال متن.
+const CHANNELS=[
+  {code:"inbox", fa:"صندوق ورودی", en:"Inbox", icon:"📥"},
+  {code:"instagram", fa:"اینستاگرام", en:"Instagram", icon:"◎", outbound:true},
+  {code:"whatsapp", fa:"واتساپ", en:"WhatsApp", icon:"◍", outbound:true},
+  {code:"email", fa:"ایمیل", en:"Email", icon:"✉", outbound:true},
+  {code:"telegram", fa:"تلگرام", en:"Telegram", icon:"◈", outbound:true},
+  {code:"forums", fa:"انجمن/یوتیوب", en:"Forums/YouTube", icon:"◫", outbound:false}
+];
+// مخاطبانِ دارای اکانت و رضایت (Usable). فقط این‌ها در صندوق‌اند.
+const LEADS=[
+  {n:"Rana K.", ch:"WhatsApp", src:"IG Lead Ad"},
+  {n:"Omar A.", ch:"Instagram DM", src:"Comment opt-in"},
+  {n:"Sara M.", ch:"Email", src:"Landing form"},
+  {n:"Ali R.",  ch:"WhatsApp", src:"Click-to-WA"},
+  {n:"Lena T.", ch:"Instagram DM", src:"Comment opt-in"}
+];
+let RULES=[];
+const CRM=[
+  {p:"HubSpot", on:false},{p:"Salesforce", on:false},
+  {p:"Zoho", on:false},{p:"Pipedrive", on:false},{p:"Webhook", on:false}
+];
+
+function setTab(t){ tab=t; render(); }
+function igMode(m){ igModeVal=m; render(); }
+function addRule(){
+  const kw=document.getElementById("ig_kw").value.trim();
+  const tx=document.getElementById("ig_text").value.trim();
+  if(!kw)return;
+  RULES.push({kw, tx: tx||L("سلام! برای اطلاعات، لطفاً در دایرکت پیام بدهید.","Hi! DM us for details."), mode:igModeVal, matched:0});
+  document.getElementById("ig_kw").value=""; document.getElementById("ig_text").value="";
+  render();
+}
+function connectCrm(i){ CRM[i].on=!CRM[i].on; render(); }
+function contact(i){
+  const box=document.getElementById("sent_"+i);
+  if(box) box.textContent=L("✓ ارسال شد (پس از بررسی رضایت). نتیجه قابل ارسال به CRM است.",
+    "✓ Sent (after consent check). Outcome can be pushed to CRM.");
+}
+
+function render(){
+  document.documentElement.lang=lang;document.documentElement.dir=lang==="fa"?"rtl":"ltr";
+  const q=(id,fa,en)=>{const e=document.getElementById(id); if(e)e.textContent=L(fa,en);};
+  q("t_title","کنسول ارتباطات فروش","Sales communications console");
+  q("t_sub","فقط مخاطبانِ دارای اکانت و رضایت · دستی یا خودکار","Consented account-holders only · manual or automatic");
+  q("t_chanH","کانال‌ها","Channels");
+  q("t_chanS","هر کانال نسخهٔ اختصاصی دارد. «انجمن/یوتیوب» فقط منبعِ سیگنال است (بدون ارسالِ متن) — کاربر از طریق opt-in وارد می‌شود.",
+    "Each channel has a dedicated version. \u201cForums/YouTube\u201d is signal-only (no outbound text) — users enter via opt-in.");
+  q("t_igH","اتوماسیون کامنت اینستاگرام","Instagram comment automation");
+  q("t_igS","مثلِ ManyChat، فقط با Instagram Graph API رسمی: کامنت روی پستِ خودتان → پاسخ/دعوتِ DM. چون API است، سرعت بالاست.",
+    "ManyChat-style via official Instagram Graph API: comment on your post → reply/DM invite. API-based, so fast.");
+  q("t_igkw","کلیدواژهٔ تریگر","Trigger keyword");
+  q("t_igtext","متن پاسخ","Reply text");
+  q("t_igmode","حالت","Mode");
+  document.getElementById("ig_auto").textContent=L("خودکار","Automatic");
+  document.getElementById("ig_manual").textContent=L("دستی","Manual");
+  q("t_igadd","افزودن قاعده","Add rule");
+  q("t_crmH","اتصال به CRM","CRM connections");
+  q("t_crmS","نتیجهٔ عملکردِ کارشناس پس از تماس به CRM ارسال می‌شود.","After contact, the agent's outcome is pushed to CRM.");
+  q("t_setH","تنظیمات ابزارهای پیام","Messaging tool settings");
+  q("t_setS","ابزارهای Omnichannel و ارسال. برای هر پرسنل در داشبورد اختصاصی فعال می‌شود.","Omnichannel and sending tools, enabled per agent in their dashboard.");
+
+  // tabs
+  const tabs=document.getElementById("tabs"); tabs.innerHTML="";
+  const list=[...CHANNELS, {code:"ig", fa:"قاعدهٔ کامنت", en:"Comment rules", icon:"⟳"},
+    {code:"crm", fa:"CRM", en:"CRM", icon:"⇲"}, {code:"settings", fa:"تنظیمات", en:"Settings", icon:"⚙"}];
+  list.forEach(c=>{
+    const el=document.createElement("div"); el.className="tab"+((tab===c.code)?" on":"");
+    el.onclick=()=>setTab(c.code);
+    el.innerHTML=`<span>${c.icon}</span> ${lang==="fa"?c.fa:c.en}`+
+      (c.code==="inbox"?` <span class="badge">${LEADS.length}</span>`:"");
+    tabs.appendChild(el);
+  });
+
+  // panes visibility
+  document.getElementById("pane_inbox").className = (["ig","crm","settings"].includes(tab))?"hide":"";
+  document.getElementById("pane_ig").className = (tab==="ig")?"":"hide";
+  document.getElementById("pane_crm").className = (tab==="crm")?"":"hide";
+  document.getElementById("pane_settings").className = (tab==="settings")?"":"hide";
+
+  // inbox / channel view
+  if(!["ig","crm","settings"].includes(tab)){
+    const chan = CHANNELS.find(c=>c.code===tab) || CHANNELS[0];
+    const inbox=document.getElementById("inbox");
+    if(chan.code!=="inbox" && chan.outbound===false){
+      inbox.innerHTML=`<div class="pb">${L(
+        "این کانال «منبعِ سیگنال» است، نه ارسالِ متن. موتور آن را برای کشفِ نیت می‌گردد؛ کاربر از راهِ لندینگ/opt-in واردِ صندوق می‌شود و تماس فقط در کانالِ رضایت‌داده‌شده انجام می‌شود.",
+        "This channel is signal-only, not outbound text. The engine crawls it for intent; users enter via landing/opt-in, and contact happens only on the channel where consent was given.")}</div>`;
+    } else {
+      const rows=LEADS.filter(l=>chan.code==="inbox"||l.ch.toLowerCase().includes(chan.en.toLowerCase().split(" ")[0].toLowerCase()));
+      inbox.innerHTML = (rows.length?rows:LEADS).map((l,i)=>`
+        <div class="lead">
+          <div class="av">${l.n[0]}</div>
+          <div class="who"><b>${l.n}</b><br><small>${l.ch} · ${L("منبع","src")}: ${l.src}</small>
+            <div class="row" style="margin-top:6px">
+              <span class="toggle"><button class="on">${L("دستی","Manual")}</button><button>${L("خودکار","Auto")}</button></span>
+              <button class="mini" onclick="contact(${i})">${L("ارسال پیام","Send message")}</button>
+              <span class="mini" style="cursor:default">${L("→ CRM","→ CRM")}</span>
+            </div>
+            <div class="sent" id="sent_${i}"></div>
+          </div>
+          <span class="consent ok">✓ ${L("رضایت","consent")}</span>
+        </div>`).join("");
+    }
+  }
+
+  // IG rules list
+  const igl=document.getElementById("ig_list");
+  if(igl){
+    document.getElementById("ig_auto").className=igModeVal==="auto"?"on":"";
+    document.getElementById("ig_manual").className=igModeVal==="manual"?"on":"";
+    igl.innerHTML = RULES.length? RULES.map(r=>`<div>• <b>${r.kw}</b> → ${r.mode==="auto"?L("خودکار","auto"):L("دستی","manual")} · <span style="color:var(--dim)">${r.tx}</span></div>`).join("")
+      : `<div style="color:var(--dim)">${L("هنوز قاعده‌ای نیست.","No rules yet.")}</div>`;
+  }
+
+  // CRM cards
+  const crm=document.getElementById("crm");
+  if(crm){
+    crm.innerHTML=CRM.map((c,i)=>`
+      <div class="crmc"><b>${c.p}</b>
+        <span class="st"><span class="dot ${c.on?"on":""}"></span>${c.on?L("متصل","Connected"):L("متصل نشده","Not connected")}</span>
+        <button class="btn ${c.on?"ghost":""}" onclick="connectCrm(${i})">${c.on?L("قطع","Disconnect"):L("اتصال","Connect")}</button>
+      </div>`).join("");
+  }
+
+  // Settings
+  const set=document.getElementById("settings");
+  if(set){
+    const tools=[
+      ["ManyChat", L("اتوماسیون کامنت/DM اینستاگرام از API رسمی","IG comment/DM automation via official API")],
+      ["Respond.io / WATI", L("Omnichannel: اینستاگرام + واتساپ در یک صندوق (API رسمی)","Omnichannel: Instagram + WhatsApp in one inbox (official API)")],
+      ["WhatsApp Business API", L("قالبِ تأییدشده + opt-in + لغو","Approved template + opt-in + opt-out")],
+      ["Email (SMTP/ESP)", L("فرستندهٔ مشخص + unsubscribe","Named sender + unsubscribe")]
+    ];
+    set.innerHTML=tools.map(t=>`<div class="lead"><div class="av">⚙</div>
+      <div class="who"><b>${t[0]}</b><br><small>${t[1]}</small></div>
+      <span class="toggle"><button>${L("دستی","Manual")}</button><button class="on">${L("خودکار","Auto")}</button></span></div>`).join("");
+  }
+
+  document.getElementById("t_note").innerHTML=L(
+    "<b>مبنای کار:</b> شماره/ایمیل در یدِ مدیریت است و مسیر فقط پس از رضایتِ فرد و آرشیوِ رضایت‌نامه ادامه می‌یابد. ارسال فقط روی کانالی که رضایتش <code>Granted</code> است و مخاطب opt-out نکرده. برای «طبیعی‌بودن» از متنِ انسانی و فاصله‌گذاریِ محترمانهٔ مطابقِ نرخِ رسمیِ هر پلتفرم استفاده می‌شود — نه دورزدنِ محدودیت‌ها. کارِ واقعیِ ارسال با API رسمیِ هر پلتفرم و کلید، در نصبِ شما فعال می‌شود.",
+    "<b>Basis:</b> phone/email stay manager-held; the path continues only after the person's consent and an archived consent record. Sending happens only on a channel with <code>Granted</code> consent and no opt-out. \u201cNatural\u201d tone means human copy and respectful pacing within each platform's official rate — not evading limits. Real sending activates with each platform's official API and keys in your install.");
+
+  document.getElementById("t_foot").textContent=L(
+    "هر سوشیال/پیام‌رسان نسخهٔ اختصاصی دارد. منابعِ «فقط سیگنال» (انجمن/یوتیوب) متن نمی‌فرستند؛ فقط نیت را کشف و به opt-in هدایت می‌کنند. اگر برای کانالی روشِ رسمی پیدا نشد، آن کانال «فقط سیگنال» می‌ماند تا روشِ مجاز فراهم شود.",
+    "Each social/messenger has a dedicated version. Signal-only sources (forums/YouTube) send no text; they discover intent and route to opt-in. If no official method exists for a channel, it stays signal-only until a compliant path is available.");
+}
+function toggleLang(){lang=lang==="fa"?"en":"fa";render();}
+render();
+</script>
+</body>
+</html>

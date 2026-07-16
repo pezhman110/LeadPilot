@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>موتور هدف و زنجیرهٔ درآمد — LeadPilot</title>
+<style>
+:root{
+  --bg:#0A0612;--bg2:#130B24;--panel:rgba(255,255,255,.045);
+  --gold:#E6B35A;--amber:#F0C674;--line:rgba(230,179,90,.18);
+  --text:#EDE7F6;--muted:#9E97B5;--safe:#4CAF7D;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Vazirmatn','Segoe UI',Tahoma,sans-serif;
+  background:radial-gradient(1300px 800px at 72% -14%,var(--bg2),var(--bg)) fixed;color:var(--text);min-height:100vh;line-height:1.6}
+.app{max-width:1000px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px;font-weight:700}
+.logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--gold),var(--amber));box-shadow:0 0 26px rgba(230,179,90,.45)}
+.brand small{display:block;color:var(--muted);font-weight:400;font-size:12px}
+.lang{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:7px 13px;cursor:pointer}
+main{padding:20px 24px 46px}
+h2{color:var(--amber);margin:0 0 4px}h3{color:var(--amber);font-size:15px;margin:22px 0 8px}
+.muted{color:var(--muted);font-size:13px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:15px;margin:10px 0}
+label{font-size:12px;color:var(--muted);display:block;margin:6px 0 4px}
+input,select{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--text);border-radius:9px;padding:8px 11px;font-family:inherit;font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.funnel{margin-top:14px}
+.step{display:flex;align-items:center;gap:12px;margin:6px 0}
+.step .lbl{flex:0 0 190px;font-size:13px;color:var(--muted)}
+.step .track{flex:1;height:26px;background:rgba(255,255,255,.05);border-radius:8px;overflow:hidden;position:relative}
+.step .fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--amber));display:flex;align-items:center;padding-inline-start:10px;color:#20140a;font-weight:700;font-size:13px;white-space:nowrap;min-width:60px}
+.est{font-size:12px;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:8px 12px;margin-top:10px}
+.chain{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;margin-top:8px}
+.node{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:9px;padding:6px 11px}
+.arr{color:var(--gold)}
+footer{padding:18px 24px;color:var(--muted);font-size:12px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand"><div class="logo"></div>
+      <div><span id="bt"></span><small id="bs"></small></div>
+    </div>
+    <button class="lang" onclick="toggleLang()">EN / فا</button>
+  </header>
+  <main id="main"></main>
+  <footer id="foot"></footer>
+</div>
+<script>
+let lang="fa";
+const L=(fa,en)=>lang==="fa"?fa:en;
+let goal=1000000, deal=200000, rClose=10, rQual=25, rConsent=20, rSignal=20;
+
+function calc(){
+  const deals=Math.ceil(goal/deal);
+  const qualified=Math.ceil(deals/(rClose/100));
+  const consents=Math.ceil(qualified/(rQual/100));
+  const contacts=Math.ceil(consents/(rConsent/100));
+  const signals=Math.ceil(contacts/(rSignal/100));
+  return {deals,qualified,consents,contacts,signals};
+}
+function bar(lbl,val,max){
+  const w=Math.max(8,Math.min(100,val/max*100));
+  return `<div class="step"><span class="lbl">${lbl}</span><span class="track"><span class="fill" style="width:${w}%">${val.toLocaleString()}</span></span></div>`;
+}
+function render(){
+  document.documentElement.lang=lang;document.documentElement.dir=lang==="fa"?"rtl":"ltr";
+  document.getElementById("bt").textContent=L("موتور هدف و زنجیرهٔ درآمد","Target & revenue-chain engine");
+  document.getElementById("bs").textContent=L("از هدف مالی به عقب → تعداد سیگنالِ لازم","From financial goal backward → required signals");
+  document.getElementById("foot").textContent=L(
+    "این اعداد تضمین نیستند؛ می‌گویند با نرخ‌های فعلی چه حجمی برای رسیدن به هدف لازم است. نرخ‌ها با داده واقعیِ هر پروژه اصلاح می‌شوند.",
+    "These numbers aren't guarantees; they show the volume needed at current rates. Rates get corrected with each project's real data.");
+  const r=calc();
+  const max=r.signals;
+  const m=document.getElementById("main");
+  m.innerHTML=`
+  <h2>${L("موتور هدف/ظرفیت/زنجیرهٔ درآمد","Target/capacity/revenue-chain")}</h2>
+  <p class="muted">${L("سیستم فقط نمی‌پرسد «چند لید؟» — از هدفِ نهایی به عقب محاسبه می‌کند.",
+    "The system doesn't just ask 'how many leads?' — it computes backward from the final goal.")}</p>
+
+  <div class="card">
+    <h3 style="margin-top:0">${L("ورودی هدف","Goal inputs")}</h3>
+    <div class="grid">
+      <div><label>${L("هدف درآمد/GMV (AED)","Revenue/GMV goal")}</label><input type="number" value="${goal}" onchange="set('goal',this.value)"></div>
+      <div><label>${L("متوسط ارزش قرارداد","Avg deal value")}</label><input type="number" value="${deal}" onchange="set('deal',this.value)"></div>
+      <div><label>${L("نرخ بستن قرارداد ٪","Close rate %")}</label><input type="number" value="${rClose}" onchange="set('rClose',this.value)"></div>
+      <div><label>${L("رضایت→واجد شرایط ٪","Consent→qualified %")}</label><input type="number" value="${rQual}" onchange="set('rQual',this.value)"></div>
+      <div><label>${L("تماس→رضایت ٪","Contact→consent %")}</label><input type="number" value="${rConsent}" onchange="set('rConsent',this.value)"></div>
+      <div><label>${L("سیگنال→تماس ٪","Signal→contact %")}</label><input type="number" value="${rSignal}" onchange="set('rSignal',this.value)"></div>
+    </div>
+  </div>
+
+  <div class="card funnel">
+    <h3 style="margin-top:0">${L("محاسبهٔ معکوس قیف","Reverse funnel")}</h3>
+    ${bar(L("قرارداد لازم","Deals needed"),r.deals,max)}
+    ${bar(L("لید واجد شرایط لازم","Qualified leads"),r.qualified,max)}
+    ${bar(L("رضایت لازم","Consents"),r.consents,max)}
+    ${bar(L("اطلاعات تماس لازم","Contacts"),r.contacts,max)}
+    ${bar(L("سیگنال اولیه لازم","Initial signals"),r.signals,max)}
+    <div class="est">${L("مثال سند: هدف ۱M، معامله ۲۰۰k → ۵ قرارداد، ۵۰ لید، ۲۰۰ رضایت، ۱۰۰۰ تماس، ۵۰۰۰ سیگنال.",
+      "Doc example: 1M goal, 200k deal → 5 deals, 50 leads, 200 consents, 1000 contacts, 5000 signals.")}</div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">${L("زنجیرهٔ ارزش بین ۱۶ پروژه","Value chain across 16 projects")}</h3>
+    <div class="muted">${L("پروژه‌ها جزیره‌ای نیستند؛ یک فروش می‌تواند فروشی دیگر بسازد (با رضایتِ دسته‌ایِ باشگاه).",
+      "Projects aren't islands; one sale can create another (with per-category club consent).")}</div>
+    <div class="chain">
+      <span class="node">${L("کارخانه","Factory")}</span><span class="arr">→</span>
+      <span class="node">${L("فروشگاه آنلاین","Online store")}</span><span class="arr">→</span>
+      <span class="node">${L("سالن/هوم‌سرویس","Salon/Home")}</span><span class="arr">→</span>
+      <span class="node">${L("باشگاه مشتریان","Club")}</span><span class="arr">→</span>
+      <span class="node">${L("خرید مجدد/معرفی","Repeat/Referral")}</span><span class="arr">→</span>
+      <span class="node">${L("اینفلوئنسر/فریلنسر","Influencer/Freelancer")}</span>
+    </div>
+    <div class="est" style="margin-top:12px">${L("موتور Attribution از پرداختِ چندبارهٔ پورسانت جلوگیری می‌کند (منبع اصلی/کمکی/کد معرف).",
+      "Attribution engine prevents double-paying commission (primary/assist/referral code).")}</div>
+  </div>`;
+}
+function set(k,v){const n=parseFloat(v)||0;if(k==='goal')goal=n;else if(k==='deal')deal=n;else if(k==='rClose')rClose=n;else if(k==='rQual')rQual=n;else if(k==='rConsent')rConsent=n;else if(k==='rSignal')rSignal=n;render();}
+function toggleLang(){lang=lang==="fa"?"en":"fa";render();}
+render();
+</script>
+</body>
+</html>

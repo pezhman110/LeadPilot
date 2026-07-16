@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>نصب دو-کلیکی و داشبورد سلامت — LeadPilot</title>
+<style>
+:root{--bg:#0A0612;--bg2:#130B24;--panel:rgba(255,255,255,.045);--gold:#E6B35A;--amber:#F0C674;
+--line:rgba(230,179,90,.18);--text:#EDE7F6;--muted:#9E97B5;--safe:#4CAF7D;--review:#E0A94C;--block:#E4736B;--proc:#5AC8E6}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Vazirmatn','Segoe UI',Tahoma,sans-serif;background:radial-gradient(1300px 800px at 72% -14%,var(--bg2),var(--bg)) fixed;color:var(--text);min-height:100vh;line-height:1.55}
+.app{max-width:1000px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px;font-weight:700}
+.logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--gold),var(--amber));box-shadow:0 0 26px rgba(230,179,90,.45)}
+.brand small{display:block;color:var(--muted);font-weight:400;font-size:12px}
+.lang{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:7px 13px;cursor:pointer}
+main{padding:20px 24px 46px}
+h2{color:var(--amber);margin:0 0 4px}h3{color:var(--amber);font-size:14px;margin:16px 0 8px}
+.muted{color:var(--muted);font-size:13px}
+.steps{display:flex;gap:10px;margin:14px 0}
+.step{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center}
+.step.done{border-color:var(--safe)}
+.step b{display:block;font-size:15px;color:var(--amber);margin-bottom:4px}
+button{background:linear-gradient(135deg,var(--gold),var(--amber));color:#20140a;border:0;border-radius:10px;padding:10px 18px;font-weight:700;cursor:pointer;font-size:13px}
+button:disabled{opacity:.4;cursor:not-allowed}
+.conns{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;margin-top:10px}
+.conn{display:flex;align-items:center;gap:9px;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:9px 11px;cursor:pointer}
+.dot{width:11px;height:11px;border-radius:50%;flex:0 0 11px;background:var(--block)}
+.dot.green{background:var(--safe);box-shadow:0 0 10px var(--safe)}
+.dot.test{background:var(--review);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.35}}
+.conn .n{flex:1;font-size:13px}
+.crit{font-size:10px;color:var(--block)}
+.noncrit{font-size:10px;color:var(--muted)}
+.banner{border-radius:12px;padding:12px 15px;margin:12px 0;font-weight:700;font-size:14px}
+.b-ready{background:rgba(76,175,125,.12);border:1px solid var(--safe);color:var(--safe)}
+.b-reduced{background:rgba(224,169,76,.12);border:1px solid var(--review);color:var(--review)}
+.b-blocked{background:rgba(228,115,107,.12);border:1px solid var(--block);color:var(--block)}
+.result{border:1px solid var(--line);border-radius:11px;padding:9px 12px;margin-top:7px;background:rgba(255,255,255,.02);font-family:monospace;font-size:12px;display:flex;justify-content:space-between}
+.ok{color:var(--safe)}
+.note{font-size:12px;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:9px 13px;margin-top:10px}
+footer{padding:18px 24px;color:var(--muted);font-size:12px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header><div class="brand"><div class="logo"></div>
+    <div><span id="bt"></span><small id="bs"></small></div></div>
+    <button class="lang" onclick="toggleLang()">EN / فا</button></header>
+  <main id="main"></main>
+  <footer id="foot"></footer>
+</div>
+<script>
+let lang="fa";const L=(fa,en)=>lang==="fa"?fa:en;
+let installed=false, running=false;
+const CONNS=[
+  {code:"database",fa:"دیتابیس (PostgreSQL)",en:"Database",crit:true,green:false,step:1},
+  {code:"broker",fa:"Message Broker",en:"Message Broker",crit:true,green:false,step:2},
+  {code:"redis",fa:"Redis",en:"Redis",crit:true,green:false,step:3},
+  {code:"storage",fa:"Object Storage",en:"Storage",crit:true,green:false,step:4},
+  {code:"search",fa:"Search Connector",en:"Search",crit:true,green:false,step:5},
+  {code:"provider",fa:"Contact Provider",en:"Provider",crit:true,green:false,step:6},
+  {code:"consent",fa:"Consent Delivery",en:"Consent Delivery",crit:true,green:false,step:7},
+  {code:"ai",fa:"AI Scoring",en:"AI Scoring",crit:false,green:false,step:8},
+  {code:"mobile",fa:"Mobile Sync",en:"Mobile Sync",crit:false,green:false,step:9},
+  {code:"meta",fa:"Meta",en:"Meta",crit:false,green:false,step:10},
+  {code:"linkedin",fa:"LinkedIn",en:"LinkedIn",crit:false,green:false,step:11},
+  {code:"tiktok",fa:"TikTok",en:"TikTok",crit:false,green:false,step:12},
+  {code:"whatsapp",fa:"WhatsApp",en:"WhatsApp",crit:false,green:false,step:13},
+  {code:"meeting",fa:"Meeting Provider",en:"Meeting",crit:false,green:false,step:14}
+];
+function install(){ installed=true; render(); }
+function toggle(code){ const c=CONNS.find(x=>x.code===code); if(!c)return;
+  c.testing=true; render();
+  setTimeout(()=>{ c.testing=false; c.green=!c.green; render(); },500);
+}
+function connectAll(){ CONNS.forEach((c,i)=>setTimeout(()=>{c.testing=true;render();
+  setTimeout(()=>{c.testing=false;c.green=true;render();},300);},i*180)); }
+function decision(){
+  const critRed=CONNS.some(c=>c.crit&&!c.green);
+  const nonRed=CONNS.some(c=>!c.crit&&!c.green);
+  return critRed?"blocked":nonRed?"reduced":"ready";
+}
+function startRun(){ if(decision()==="blocked")return; running=true; render(); }
+
+function render(){
+  document.documentElement.lang=lang;document.documentElement.dir=lang==="fa"?"rtl":"ltr";
+  document.getElementById("bt").textContent=L("نصب دو-کلیکی و داشبورد سلامت","Two-click install & health dashboard");
+  document.getElementById("bs").textContent=L("کلیک اول نصب · کلیک دوم اتصالات · سبز = آماده · ۱۰ نتیجه از دقیقهٔ اول","install · connect · green = ready · 10 results from minute one");
+  document.getElementById("foot").textContent=L(
+    "قانون شروع: اتصال حیاتیِ قرمز → اجرا شروع نشود؛ غیرحیاتیِ قرمز → ظرفیت کاهش‌یافته + هشدار مدیر. «۱۰ شمارهٔ اول» فقط شماره‌های نرمال/هش/غیرتکراری/منبع‌دار/ماسک‌شده را می‌شمارد.",
+    "Start rule: critical red → don't start; non-critical red → reduced capacity + alert. First-10 counts only normalized/hashed/deduped/sourced/masked numbers.");
+  const dec=decision();
+  const green=CONNS.filter(c=>c.green).length;
+  const m=document.getElementById("main");
+  let h=`<h2>${L("راه‌اندازی","Setup")}</h2>
+  <div class="steps">
+    <div class="step ${installed?"done":""}"><b>${L("کلیک اول","Click 1")}</b>
+      <div class="muted">${L("نصب: API، Web، Workers، SQL، Redis، Broker، Scheduler","Install: API, Web, Workers, SQL, Redis, Broker, Scheduler")}</div>
+      <div style="margin-top:10px">${installed?`<span class="ok">✓ ${L("نصب شد","Installed")}</span>`:`<button onclick="install()">${L("نصب","Install")}</button>`}</div>
+    </div>
+    <div class="step ${green===CONNS.length?"done":""}"><b>${L("کلیک دوم","Click 2")}</b>
+      <div class="muted">${L("Wizard اتصالات — سبز شدن یعنی آماده","Connection wizard — green means ready")}</div>
+      <div style="margin-top:10px"><button onclick="connectAll()" ${!installed?"disabled":""}>${L("اتصال همه","Connect all")}</button></div>
+    </div>
+  </div>`;
+
+  if(installed){
+    h+=`<h3>${L("داشبورد سلامت اتصالات","Connection health")} (${green}/${CONNS.length})</h3>
+    <div class="conns">`;
+    CONNS.sort((a,b)=>a.step-b.step).forEach(c=>{
+      h+=`<div class="conn" onclick="toggle('${c.code}')">
+        <span class="dot ${c.testing?"test":c.green?"green":""}"></span>
+        <span class="n">${lang==="fa"?c.fa:c.en}<br><span class="${c.crit?"crit":"noncrit"}">${c.crit?L("حیاتی","critical"):L("غیرحیاتی","non-critical")}</span></span>
+      </div>`;
+    });
+    h+=`</div>`;
+
+    h+=`<div class="banner b-${dec}">${
+      dec==="ready"?L("✓ همه سبز — آمادهٔ شروع اجرای روزانه","✓ All green — ready to start"):
+      dec==="reduced"?L("⚠ اتصال غیرحیاتیِ قرمز — اجرا با ظرفیت کاهش‌یافته + هشدار مدیر","⚠ Non-critical red — reduced capacity + alert"):
+      L("✗ اتصال حیاتیِ قرمز — اجرا شروع نمی‌شود","✗ Critical red — start blocked")
+    }</div>`;
+
+    h+=`<div style="margin:10px 0"><button onclick="startRun()" ${dec==="blocked"?"disabled":""}>${L("شروع اجرای روزانه","Start daily run")}</button></div>`;
+
+    if(running){
+      h+=`<h3>${L("۱۰ نتیجهٔ اول (فقط شماره‌های واجد شرایط)","First 10 results (qualified only)")}</h3>`;
+      for(let i=1;i<=10;i++){
+        const num="+9715"+Math.floor(10000000+Math.random()*89999999);
+        const masked=num.slice(0,6)+"****"+num.slice(-4);
+        const src=["linkedin_lead_gen","meta_lead_ads","crm","referral_partner","landing_pages"][i%5];
+        h+=`<div class="result"><span class="ok">✓ #${i} ${masked}</span><span class="muted">${src} · ${L("نرمال+هش+غیرتکراری+ماسک","norm+hash+dedup+mask")}</span></div>`;
+      }
+      h+=`<div class="note">${L("شمارهٔ کامل فقط برای مدیر (با Audit) قابل مشاهده است. این‌ها همه از مبنای قانونی‌اند و تا رضایت Hidden می‌مانند.",
+        "Full numbers manager-only (with audit). All from lawful basis; Hidden until consent.")}</div>`;
+    }
+  }
+  m.innerHTML=h;
+}
+function toggleLang(){lang=lang==="fa"?"en":"fa";render();}
+render();
+</script>
+</body>
+</html>

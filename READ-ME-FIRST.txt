@@ -1,0 +1,175 @@
+════════════════════════════════════════════════════════════════
+  LeadPilot — رادار غربال اتصالات
+  فاز ۱: هستهٔ پروژه‌ها (مرحله ۱ تا ۹ طرح)  →  «نقطهٔ کنترل»
+  استک قطعی: .NET 10 + PostgreSQL + Blazor Web App
+  وضعیت: Near-Production / نیازمند Build و Runtime Validation روی دستگاه شما
+════════════════════════════════════════════════════════════════
+
+صداقت فنی: در محیط من .NET SDK نبود (CDN مایکروسافت مسدود بود). پس اینجا
+کامپایل/اجرا نشد؛ اعتبارسنجی من ساختاری است (توازن، Resolve شدن انواع DI
+و @inject، سازگاری ارجاع‌ها). اجرای واقعی و رسیدن به «نقطهٔ کنترل» را باید
+میلاد/مفتاح یک‌بار انجام دهند — دستورهایش پایین است.
+
+────────────────────────────────────────────────────────────────
+نقطهٔ کنترل (طبق خودِ طرح): این سه چیز باید سبز شوند
+────────────────────────────────────────────────────────────────
+  ۱) Build succeeded
+  ۲) Migration اجرا شود و جدول‌ها در PostgreSQL ساخته شوند
+  ۳) پروژهٔ اول در PostgreSQL ثبت شود
+تا این سه سبز نشوند، به فاز دوم (Connector و جست‌وجوی زنده) نمی‌رویم.
+
+────────────────────────────────────────────────────────────────
+اجرا
+────────────────────────────────────────────────────────────────
+پیش‌نیاز: .NET 10 SDK و یک PostgreSQL در دسترس.
+
+الف) با Docker (ساده‌ترین — Postgres خودکار بالا می‌آید):
+    cd deploy && docker compose up --build
+    داشبورد: http://localhost:8080   |   سلامت: http://localhost:8080/health
+    (اپ هنگام بالا آمدن، Migration را خودش اجرا می‌کند.)
+
+ب) محلی (Postgres خودتان):
+    1) رشتهٔ اتصال را در src/LeadPilot.Server/appsettings.json تنظیم کنید.
+    2) اجرا:
+         dotnet restore
+         dotnet build                # باید Build succeeded بدهد
+         dotnet test                 # ۱۱ تستِ دامنه
+         dotnet tool restore
+         dotnet ef migrations add InitialCreate -p src/LeadPilot.Infrastructure -s src/LeadPilot.Server
+         dotnet ef database update  -p src/LeadPilot.Infrastructure -s src/LeadPilot.Server
+         dotnet run --project src/LeadPilot.Server
+
+ثبت پروژهٔ اول: در داشبورد دکمهٔ «ثبت پروژهٔ اول (دبی)» را بزنید،
+یا با API:
+    POST http://localhost:5080/api/projects
+    (بدنه در طرح آمده؛ همان سرمایه‌گذار شخصی دبی، ۶ زبان، بودجه ۵۰۰k)
+
+سپس فعال/متوقف کردن از روی همان کارت پروژه یا:
+    POST /api/projects/{id}/activate
+    POST /api/projects/{id}/pause
+
+────────────────────────────────────────────────────────────────
+این فاز چه دارد (مرحله ۱ تا ۹)
+────────────────────────────────────────────────────────────────
+  • دامنهٔ DDD واقعی: Project (سازندهٔ خصوصی، invariant داخل سازنده،
+    ValidateScores با ترتیب صعودی، ماشین‌وضعیت Activate/Pause، RowVersion).
+    ProjectLanguage / ProjectGeography / CustomerType / ProjectStatus.
+  • EF Core + Npgsql: DbContext + Configurationها + Repository + DI +
+    DesignTimeFactory (برای migration).
+  • API مدیریت پروژه: create/list/get/activate/pause با نگاشتِ خطای دامنه.
+  • داشبورد Blazor دوزبانه (FA/EN، RTL/LTR) با ۷ منو؛ صفحهٔ پروژه‌ها کامل کار می‌کند.
+  • Health check روی /health.
+  • ۱۱ تستِ دامنه (همان تست‌های ضروریِ مرحله ۱۲ طرح).
+  • درزهای فاز بعد: ConsentStatus / ComplianceStatus / SourceType در دامنه
+    از همین حالا حاضرند تا Compliance «شهروند درجه‌یک» باشد نه پیچِ بعدی.
+
+  زبان‌های مجاز: ar, en, fa, hi, fr, ru
+
+────────────────────────────────────────────────────────────────
+بعد از نقطهٔ کنترل (فاز دوم)
+────────────────────────────────────────────────────────────────
+  Source Connector → Search Run → Query شش‌زبانه → اجرای موازی →
+  ذخیرهٔ سیگنال خام → نمایش زنده با SignalR → ثبت URL/زمان/منبع/Query →
+  جلوگیری از تکرار → توقف/ادامه → Rate Limit هر منبع.
+  اولین Connector واقعی: فرم سایت خودتان یا YouTube/Reddit API یا Partner Feed؛
+  Apollo/ایپفای فقط بر اساس مستندات قرارداد.
+
+  منطقِ آمادهٔ فاز ۲/۳ (از کارهای قبلی): ComplianceGateway،
+  ConsentStateMachine، EnrichmentGateway، امتیازدهیِ سه‌گانه — دور ریخته نشده،
+  به‌عنوان spec کنار طرح می‌ماند و به همین دامنه پورت می‌شود.
+
+پیش از استفادهٔ واقعی (Lutfi & Co): وضعیت ۲۰ میلیون شماره، متن‌های سود/ضمانت،
+و مقادیر واقعی قرارداد Apollo/ایپفای.
+════════════════════════════════════════════════════════════════
+
+════════════════════════════════════════════════════════════════
+  به‌روزرسانی: فاز ۲ (اسکلت موتور جست‌وجوی زنده) اضافه شد
+════════════════════════════════════════════════════════════════
+  توجه: این فاز موازی ساخته شد؛ اعتبارسنجی ساختاری است و باید بعد از
+  سبز شدن «نقطهٔ کنترلِ فاز ۱» روی دستگاه میلاد، build/run و تست شود.
+
+  اضافه‌شده:
+   • دامنه: SearchRun (ماشین‌وضعیت Running/Paused/Completed/Failed + شمارنده‌ها)،
+     RawSignal، Signal (سه امتیاز + شواهد)، ProjectSearchProfile (خوشه‌ها/زبان‌ها/منابع مجاز).
+   • Application: ComplianceGateway، ScoringEngine (سه امتیاز)، QueryBuilder (۶ زبان)،
+     LanguageDetector، SearchOrchestrator (Connector → Compliance → امتیاز → حذف تکراری
+     → انتشار زنده → Rate Limit).
+   • Infrastructure: DemoConnector (برچسب Demo؛ یک نمونهٔ شرکتی که مسدود می‌شود)،
+     DbContext + Configurationها + Repositoryها برای فاز ۲.
+   • Server: SignalR Hub + Notifier، SearchEndpoints، صفحهٔ Blazor «جست‌وجوی زنده» (کامل).
+   • تست‌های SearchRun.
+   • پیش‌نمایش: LeadPilot-Phase2-Preview.html (منطق واقعی سمتِ کلاینت؛ فقط بازش کنید).
+
+  اجرا مثل قبل: dotnet build/test، سپس migration جدید برای جدول‌های فاز ۲:
+     dotnet ef migrations add Phase2Search -p src/LeadPilot.Infrastructure -s src/LeadPilot.Server
+     dotnet ef database update -p src/LeadPilot.Infrastructure -s src/LeadPilot.Server
+  در داشبورد → منوی «جست‌وجوی زنده» → «اجرای جست‌وجو».
+════════════════════════════════════════════════════════════════
+
+════════════════════════════════════════════════════════════════
+  به‌روزرسانی: فاز ۲ (جست‌وجوی زنده) — اسکلت موازی اضافه شد
+════════════════════════════════════════════════════════════════
+توجه: فاز ۲ موازی ساخته شد (پیش از تأیید نقطهٔ کنترلِ فاز ۱ توسط میلاد).
+تا نقطهٔ کنترلِ فاز ۱ سبز نشده، این هم "near-production" است.
+
+فاز ۲ چه دارد:
+  • QueryBuilder — برای هر ۶ زبان (ar/en/fa/hi/fr/ru) یک Query از پروژه می‌سازد.
+  • ComplianceGateway (واقعی شد) — منبع غیرمجاز/دایرکتوری/URL نامعتبر → Blocked.
+  • RuleScoringEngine — سه امتیاز مجزا (Intent/Fit/Compliance) + شواهد + «دلیل».
+  • SearchOrchestrator — اجرای موازی Connectorها، dedup در سطح اجرا،
+    توقف/ادامه، Rate Limit هر منبع، انتشار زنده.
+  • SearchRun / RawSignal / NormalizedSignal — با URL/Query/زمان/منبع اجباری.
+  • DemoConnector (برچسب DEMO) — یکی از نمونه‌ها عمداً شرکتی است تا مسدود شدنش دیده شود.
+  • SignalR Hub (/hubs/live) + صفحهٔ «جست‌وجوی زنده» در داشبورد.
+  • ۸ تستِ جدید: gateway، scoring، QueryBuilder، language، dedup.
+
+پیش‌نمایش HTML: LiveSearch-Preview.html (بازش کنید؛ دکمهٔ «اجرای جست‌وجو»).
+Connectorهای واقعی (فرم سایت/YouTube/Reddit/Partner Feed، سپس Apollo/ایپفای
+با قرارداد) در قدم بعد. سپس ماژول محتوا (فاز ۴).
+
+════════════════════════════════════════════════════════════════
+  به‌روزرسانی: رضایت + گزارش مدیریتی + لینک منبع (تأیید حقوقی آقای لطفی)
+════════════════════════════════════════════════════════════════
+دو فایلِ خوبِ سرمایه‌گذاری اعمال شد (قانون طلایی سرچ + کلمات مثبت/منفی/بودجه).
+فایلِ «اکانت به تلفن» به نسخهٔ compliant تبدیل شد: کشف سیگنال، نه استخراج مخفی.
+
+اضافه‌شده:
+  • ContactPoint — تا رضایت Hidden است، بعد Usable؛ رد → Suppressed.
+    بدون Provider/LawfulBasis ساخته نمی‌شود.
+  • InvitationJourney — «اولین ارتباط = دعوت opt-in» (تأیید حقوقی).
+    سه حاصل: رضایت / بی‌جواب (تا سقف، سپس توقف) / رد.
+    مسیریابی نمره: بالا (≥آستانه) → کارشناس انسانی؛ پایین‌تر → AI + تبلیغات ارزان به گران.
+  • RuleScoringEngine بازنویسی شد بر اساس «قانون طلایی»:
+    Personal Intent + Budget + Dubai Relevance + Investment Behavior +
+    Real Estate/Business Interest + Consent-Safe Source. کلمهٔ investor به‌تنهایی کافی نیست.
+  • ManagementReportService — گزارشِ «یک نگاه»: KPI، توزیع زبان/منبع،
+    و هر لید با «لینک منبعِ قابل‌کلیک» (از کجا انتخاب شد) + نمره + مسیر.
+  • Endpoint: GET /api/projects/{id}/report
+  • ۶ تستِ جدید (consent/journey/routing).
+
+پیش‌نمایش HTML: Management-Report-Preview.html
+  (هدف‌گذاری لید + چرخش زندهٔ منبع + لیدها با لینک منبعِ قابل‌کلیک).
+
+نساختیم (طبق خطوط قرمز سند و تأیید حقوقی): استخراج شمارهٔ بدون رضایت،
+اثبات ثروت از طلا/هتل/پاتوق، پروفایلر ملیتی، قیمت‌گذاری بر اساس ملیت.
+
+════════════════════════════════════════════════════════════════
+  به‌روزرسانی: ماژول همکاران/فروشنده + پوشش زبان
+════════════════════════════════════════════════════════════════
+زبان‌های کاورشده (موتور + کارشناس): عربی، فارسی، انگلیسی، ترکی، فرانسوی، هندی، لوکال.
+بقیه (روسی، چینی، …) کاور نمی‌شوند → فقط هوش مصنوعی، پیام به زبانِ خودِ مشتری.
+
+اضافه‌شده:
+  • Partner — نام، نوع، نمرهٔ عملکردِ قبلی (۰–۱۰۰ که مدیر وارد می‌کند)، زبان‌ها، توانمندی‌ها.
+  • PartnerAgreement — درصد/جایزه/شرایط؛ «تحت نظر مدیر + قرارداد و Audit»:
+    تا ApprovedByManager + ContractRef نیاید، Draft می‌ماند و فعال نمی‌شود.
+  • DealClassifier — طبقه‌بندیِ مبلغ دقیقاً طبق بازه‌های اعلامی:
+    سرمایه‌گذاری ۵۰k–۵۰۰k / ۵۰۰k–۵M / ۵M–۱۰۰M،
+    خرید ۲۰۰k–۷۵۰M (پروژه)، فروش بیزینس هر مبلغ (تعهد ۳ ماه)، بقیه = تعرفه.
+  • LanguageCoverage — ۷ زبان کاورشده؛ بقیه AiOnly.
+  • AssignmentRecommender — «این لید به چه همکاری برسد» بر اساس
+    تطبیق زبان + توانمندیِ طبقه + نمرهٔ عملکرد، با دلیلِ قابل‌توضیح.
+  • ۶ تستِ جدید.
+
+پیش‌نمایش HTML: Partners-Preview.html
+  (ثبت همکار + طبقه‌بندی مبلغ + پیشنهاد تخصیص + توافق تحت مدیر/Audit).

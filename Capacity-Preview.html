@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>برنامه‌ریز ظرفیت روزانه — LeadPilot</title>
+<style>
+:root{--bg:#0A0612;--bg2:#130B24;--panel:rgba(255,255,255,.045);--gold:#E6B35A;--amber:#F0C674;
+--line:rgba(230,179,90,.18);--text:#EDE7F6;--muted:#9E97B5;--safe:#4CAF7D;--review:#E0A94C;--proc:#5AC8E6}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Vazirmatn','Segoe UI',Tahoma,sans-serif;background:radial-gradient(1300px 800px at 72% -14%,var(--bg2),var(--bg)) fixed;color:var(--text);min-height:100vh;line-height:1.55}
+.app{max-width:1000px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px;font-weight:700}
+.logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--gold),var(--amber));box-shadow:0 0 26px rgba(230,179,90,.45)}
+.brand small{display:block;color:var(--muted);font-weight:400;font-size:12px}
+.lang{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:7px 13px;cursor:pointer}
+main{padding:20px 24px 46px}
+h2{color:var(--amber);margin:0 0 4px}h3{color:var(--amber);font-size:14px;margin:16px 0 8px}
+.muted{color:var(--muted);font-size:13px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:15px;margin:10px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+label{font-size:12px;color:var(--muted);display:block;margin:6px 0 4px}
+input{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--text);border-radius:9px;padding:8px 11px;font-family:inherit;font-size:13px}
+table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}
+th,td{text-align:start;padding:8px 6px;border-bottom:1px solid rgba(255,255,255,.05)}
+th{color:var(--amber);font-size:12px}
+.tot{font-weight:700;color:var(--amber)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:12px 0}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:12px;text-align:center}
+.kpi b{display:block;font-size:22px;color:var(--amber)}
+.kpi span{font-size:12px;color:var(--muted)}
+.window{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px}
+.track{height:26px;background:rgba(255,255,255,.05);border-radius:8px;overflow:hidden;position:relative;margin-top:8px}
+.prog{height:100%;background:linear-gradient(90deg,var(--gold),var(--amber));display:flex;align-items:center;padding-inline-start:10px;color:#20140a;font-weight:700;font-size:12px;transition:width .3s}
+.note{font-size:12px;color:var(--muted);border:1px dashed var(--line);border-radius:10px;padding:9px 13px;margin-top:10px}
+footer{padding:18px 24px;color:var(--muted);font-size:12px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header><div class="brand"><div class="logo"></div>
+    <div><span id="bt"></span><small id="bs"></small></div></div>
+    <button class="lang" onclick="toggleLang()">EN / فا</button></header>
+  <main id="main"></main>
+  <footer id="foot"></footer>
+</div>
+<script>
+let lang="fa";const L=(fa,en)=>lang==="fa"?fa:en;
+// گروه‌ها با هدف رضایت و ضریب (مطابق حرف پژمان)
+let groups=[
+  {code:"BUY_INVEST_SELL",fa:"خرید/سرمایه‌گذاری/فروش",en:"Buy/Invest/Sell",consent:500,mult:2.0,pri:100},
+  {code:"SALON_HOME",fa:"سالن/هوم‌سرویس",en:"Salon/Home",consent:250,mult:2.0,pri:80},
+  {code:"OTHER",fa:"بقیهٔ پروژه‌ها",en:"Other projects",consent:400,mult:2.0,pri:60}
+];
+let discoveryRate=25, dupRate=10, safety=15, windowHours=4, elapsed=1.5;
+
+function calc(g){
+  const contacts=Math.ceil(g.consent*g.mult); // شماره لازم (ضریب عدم‌تأیید)
+  const withDup=Math.ceil(contacts/(1-dupRate/100));
+  const signals=Math.ceil(withDup/(discoveryRate/100)*(1+safety/100));
+  return {contacts,withDup,signals};
+}
+function render(){
+  document.documentElement.lang=lang;document.documentElement.dir=lang==="fa"?"rtl":"ltr";
+  document.getElementById("bt").textContent=L("برنامه‌ریز ظرفیت روزانه","Daily capacity planner");
+  document.getElementById("bs").textContent=L("۳۰۰۰ لید در پنجرهٔ ۴ ساعته · کسری‌محور · بدون قفل/تکرار","3000 leads in a 4h window · deficit-driven · no lock/dup");
+  document.getElementById("foot").textContent=L(
+    "این اعداد با نرخ‌های واقعیِ هر گروه اصلاح می‌شوند. هسته کسری‌محور است: هر چرخه فقط به‌اندازهٔ عقب‌ماندگی Job می‌سازد و بعد از هدف خودکار می‌ایستد.",
+    "Numbers self-correct with each group's real rates. Deficit-driven core: each cycle creates only the shortfall, and auto-stops after target.");
+  let contacts=0,signals=0,consents=0;
+  groups.forEach(g=>{const c=calc(g);contacts+=c.contacts;signals+=c.signals;consents+=g.consent;});
+  const m=document.getElementById("main");
+  let h=`<h2>${L("ظرفیت روزانه","Daily capacity")}</h2>
+  <p class="muted">${L("از رضایتِ هدفِ هر گروه به عقب: شمارهٔ لازم، جبرانِ تکراری، و سیگنالِ اولیهٔ لازم.",
+    "From each group's target consents backward: contacts needed, duplicate allowance, and initial signals.")}</p>
+
+  <div class="card">
+    <h3 style="margin-top:0">${L("نرخ‌های واقعی (قابل تنظیم)","Real rates (adjustable)")}</h3>
+    <div class="grid">
+      <div><label>${L("نرخ دریافت سیگنال→تماس ٪","Signal→contact %")}</label><input type="number" value="${discoveryRate}" onchange="set('discoveryRate',this.value)"></div>
+      <div><label>${L("نرخ تکرار ٪","Duplicate %")}</label><input type="number" value="${dupRate}" onchange="set('dupRate',this.value)"></div>
+      <div><label>${L("حاشیهٔ اطمینان ٪","Safety margin %")}</label><input type="number" value="${safety}" onchange="set('safety',this.value)"></div>
+      <div><label>${L("پنجرهٔ کاری (ساعت)","Window (hours)")}</label><input type="number" value="${windowHours}" onchange="set('windowHours',this.value)"></div>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><b>${consents.toLocaleString()}</b><span>${L("لید تأییدشدهٔ هدف","Target consents")}</span></div>
+    <div class="kpi"><b>${contacts.toLocaleString()}</b><span>${L("شماره لازم","Contacts needed")}</span></div>
+    <div class="kpi"><b>${signals.toLocaleString()}</b><span>${L("سیگنال اولیه لازم","Initial signals")}</span></div>
+    <div class="kpi"><b>${Math.ceil(contacts/windowHours).toLocaleString()}</b><span>${L("شماره در ساعت","Contacts/hour")}</span></div>
+    <div class="kpi"><b>${Math.ceil(contacts/windowHours/60)}</b><span>${L("شماره در دقیقه","Contacts/min")}</span></div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">${L("تفکیک گروه‌ها","Group breakdown")}</h3>
+    <table><tr><th>${L("گروه","Group")}</th><th>${L("رضایت هدف","Consents")}</th><th>${L("شماره","Contacts")}</th><th>${L("با تکرار","+Dup")}</th><th>${L("سیگنال","Signals")}</th><th>${L("اولویت","Priority")}</th></tr>`;
+  groups.forEach(g=>{const c=calc(g);
+    h+=`<tr><td>${lang==="fa"?g.fa:g.en}</td><td>${g.consent}</td><td>${c.contacts.toLocaleString()}</td><td>${c.withDup.toLocaleString()}</td><td>${c.signals.toLocaleString()}</td><td>${g.pri}</td></tr>`;});
+  h+=`<tr class="tot"><td>${L("جمع","Total")}</td><td>${consents}</td><td>${contacts.toLocaleString()}</td><td>—</td><td>${signals.toLocaleString()}</td><td>—</td></tr></table>
+    ${contacts>5000?`<div class="note" style="color:var(--review)">${L("هشدار: بیش از ظرفیت طراحی (۵۰۰۰). سهمیه یا نرخ را تنظیم کنید.","Warning: exceeds design capacity (5000).")}</div>`:`<div class="note">${L("در محدودهٔ ظرفیت طراحی (۵۰۰۰).","Within design capacity (5000).")}</div>`}
+  </div>
+
+  <div class="window">
+    <h3 style="margin-top:0">${L("سرعتِ لازم در پنجرهٔ کاری","Required pace in window")}</h3>
+    <div class="muted">${L(`با ${elapsed} ساعت از ${windowHours} ساعت گذشته، باید این‌قدر پیش رفته باشیم:`,`At ${elapsed}h of ${windowHours}h, we should be at:`)}</div>
+    <div class="track"><div class="prog" style="width:${Math.min(100,elapsed/windowHours*100)}%">${Math.round(elapsed/windowHours*100)}% · ${Math.ceil(contacts*elapsed/windowHours).toLocaleString()} ${L("شماره","contacts")}</div></div>
+    <input type="range" min="0" max="${windowHours}" step="0.1" value="${elapsed}" style="width:100%;margin-top:10px" oninput="set('elapsed',this.value)">
+    <div class="note">${L("هسته کسری‌محور: اگر عقب باشیم، Batch بزرگ‌تر؛ اگر جلو باشیم، کمتر. بعد از رسیدن به هدفِ گروه، آن گروه خودکار می‌ایستد.",
+      "Deficit-driven: behind → bigger batch; ahead → fewer. Each group auto-stops once its target is met.")}</div>
+  </div>`;
+  m.innerHTML=h;
+}
+function set(k,v){const n=parseFloat(v)||0;({discoveryRate:1,dupRate:1,safety:1,windowHours:1,elapsed:1})[k]&&(window[k]=n);
+  if(k==="discoveryRate")discoveryRate=n;else if(k==="dupRate")dupRate=n;else if(k==="safety")safety=n;
+  else if(k==="windowHours")windowHours=n;else if(k==="elapsed")elapsed=n;render();}
+function toggleLang(){lang=lang==="fa"?"en":"fa";render();}
+render();
+</script>
+</body>
+</html>

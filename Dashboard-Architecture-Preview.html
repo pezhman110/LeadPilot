@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>معماری داشبورد — LeadPilot</title>
+<style>
+:root{
+  --void:#07060D;--panel:#0F0C1A;--panel2:#151024;--edge:rgba(214,178,102,.16);
+  --gold:#D6B266;--amber:#F2CE80;--ink:#ECE7F5;--dim:#9C93B4;
+  --ok:#54B78A;--warn:#E4A94C;--bad:#E1685E;--info:#5BB6D6;--idle:#4A4460;
+}
+*{box-sizing:border-box}
+body{margin:0;background:
+  radial-gradient(900px 500px at 82% -10%,#1a1330 0%,transparent 60%),
+  radial-gradient(700px 500px at 0% 110%,#12182b 0%,transparent 55%),var(--void);
+  color:var(--ink);font-family:'Vazirmatn','Segoe UI',Tahoma,sans-serif;line-height:1.6;min-height:100vh}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px 60px}
+header{display:flex;align-items:center;justify-content:space-between;padding:20px 0;border-bottom:1px solid var(--edge)}
+.mark{display:flex;align-items:center;gap:12px}
+.logo{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,var(--gold),var(--amber));box-shadow:0 0 24px rgba(214,178,102,.4)}
+.mark b{font-size:15px}.mark small{display:block;color:var(--dim);font-weight:400;font-size:12px}
+.lang{background:transparent;border:1px solid var(--edge);color:var(--ink);border-radius:9px;padding:7px 13px;cursor:pointer;font-family:inherit;font-size:12px}
+.rolebar{display:flex;gap:8px;align-items:center;margin:16px 0 8px}
+.rolebar .seg{display:inline-flex;border:1px solid var(--edge);border-radius:10px;overflow:hidden}
+.rolebar .seg button{background:transparent;border:0;color:var(--dim);padding:8px 16px;cursor:pointer;font-family:inherit;font-size:12.5px}
+.rolebar .seg button.on{background:linear-gradient(135deg,var(--gold),var(--amber));color:#231703;font-weight:700}
+.count{margin-inline-start:auto;font-size:11.5px;color:var(--dim)}
+.count b{color:var(--amber)}
+.spine{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+.stage{background:var(--panel);border:1px solid var(--edge);border-radius:13px;padding:12px 15px}
+.stage .head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.num{width:26px;height:26px;border-radius:8px;background:rgba(214,178,102,.12);color:var(--gold);display:grid;place-items:center;font-size:12px;font-weight:700;flex:0 0 26px}
+.stage .head b{font-size:13.5px}
+.stage .head .cost{margin-inline-start:auto;font-size:11px;color:var(--dim)}
+.stage .head .cost b{color:var(--ok);font-weight:700}
+.items{display:flex;flex-wrap:wrap;gap:7px}
+.pill{font-size:12px;padding:7px 12px;border-radius:9px;border:1px solid var(--edge);background:var(--panel2);color:var(--ink);display:flex;align-items:center;gap:6px}
+.pill.primary{border-color:rgba(214,178,102,.4);color:var(--amber)}
+.pill.sec{color:var(--dim);border-style:dashed}
+.pill .tick{width:6px;height:6px;border-radius:50%;background:var(--gold)}
+.pill.sec .tick{background:var(--idle)}
+.settings{border-color:rgba(91,182,214,.25)}
+.settings .num{background:rgba(91,182,214,.12);color:var(--info)}
+.legend{display:flex;gap:14px;font-size:11px;color:var(--dim);margin:10px 0}
+.legend span{display:flex;align-items:center;gap:5px}
+.legend .d{width:7px;height:7px;border-radius:50%}
+.legend .d.p{background:var(--gold)}.legend .d.s{background:var(--idle)}
+.note{font-size:11.5px;color:var(--dim);border:1px dashed var(--edge);border-radius:11px;padding:11px 15px;margin-top:14px}
+.note b{color:var(--amber)}
+footer{color:var(--dim);font-size:11px;border-top:1px solid var(--edge);margin-top:26px;padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark"><div class="logo"></div>
+      <div><b id="t_title"></b><small id="t_sub"></small></div></div>
+    <button class="lang" onclick="toggleLang()">EN / فارسی</button>
+  </header>
+
+  <div class="rolebar">
+    <span class="seg">
+      <button id="r_seller" onclick="setRole('seller')">فروشنده</button>
+      <button id="r_manager" onclick="setRole('manager')">مدیر</button>
+      <button id="r_admin" onclick="setRole('admin')">ادمین</button>
+    </span>
+    <span class="count" id="count"></span>
+  </div>
+  <div class="legend" id="legend"></div>
+
+  <div class="spine" id="spine"></div>
+
+  <div class="note" id="t_note"></div>
+  <footer id="t_foot"></footer>
+</div>
+
+<script>
+let lang="fa";
+const L=(fa,en)=>lang==="fa"?fa:en;
+let role="manager";
+const RANK={seller:0,manager:1,admin:2};
+
+// همان Blueprint بک‌اند
+const STAGES=[
+  {id:1, fa:"کشف", en:"Discovery", cost:["$30–300","per month","Apify/پایش"]},
+  {id:2, fa:"دریافت و رضایت", en:"Capture & consent", cost:["$0–50","per month","لندینگ/فرم"]},
+  {id:3, fa:"حاکمیت", en:"Governance", cost:["$50–100","per seat/mo","Apollo/Lusha (B2B)"]},
+  {id:4, fa:"تخصیص", en:"Assignment", cost:["$0","—","داخلی"]},
+  {id:5, fa:"ارتباطات", en:"Communication", cost:["$50–400","seat + per-conv","WhatsApp+ManyChat"]},
+  {id:6, fa:"تبدیل و CRM", en:"Conversion & CRM", cost:["$0–500","per month","HubSpot/Zoho"]},
+  {id:7, fa:"گزارش و انطباق", en:"Reports & compliance", cost:["$0","—","داخلی"]},
+  {id:99, fa:"تنظیمات", en:"Settings", cost:["—","—",""]}
+];
+const ITEMS=[
+  ["source-discovery","کشف منبع","Source discovery",1,"manager",true],
+  ["communities","انجمن‌ها و فروم‌ها","Communities & forums",1,"seller",true],
+  ["intent-signals","سیگنال‌های قصد","Intent signals",1,"seller",true],
+  ["competitor-research","تحلیل رقبا","Competitor research",1,"manager",false],
+  ["lead-magnets","Lead Magnetها","Lead magnets",2,"manager",true],
+  ["landing-forms","لندینگ و فرم رضایت","Landing & consent forms",2,"manager",true],
+  ["csv-import","ورود CSV/CRM","CSV/CRM import",2,"manager",false],
+  ["consent","رضایت‌ها","Consents",2,"manager",false],
+  ["quarantine","قرنطینه","Quarantine",3,"manager",true],
+  ["provider-approval","تأیید Providerها","Provider approvals",3,"manager",false],
+  ["enrichment","غنی‌سازی (B2B)","Enrichment (B2B)",3,"manager",false],
+  ["agent-workspace","میزکار فروشنده","Agent workspace",4,"seller",true],
+  ["assignments","تخصیص شماره","Contact assignments",4,"manager",false],
+  ["targets","اهداف","Targets",4,"manager",false],
+  ["inbox","صندوق یکپارچه","Unified inbox",5,"seller",true],
+  ["ig-automation","اتوماسیون کامنت","Comment automation",5,"seller",false],
+  ["routing","مسیریابی کانال","Channel routing",5,"manager",false],
+  ["outcomes","نتیجه تماس","Outcomes",6,"seller",true],
+  ["crm-sync","همگام‌سازی CRM","CRM sync",6,"manager",false],
+  ["reports","گزارش عملکرد","Performance reports",7,"manager",true],
+  ["audit","ممیزی","Audit trail",7,"manager",false],
+  ["suppression","فهرست توقف","Suppression list",7,"manager",false],
+  ["retention","نگهداری و حذف","Retention & deletion",7,"manager",false],
+  ["connections","اتصالات","Connections",99,"admin",false],
+  ["templates","قالب‌ها","Templates",99,"manager",false],
+  ["roles","نقش‌ها و دسترسی","Roles & permissions",99,"admin",false],
+  ["vendor-reviews","بازبینی Vendor","Vendor reviews",99,"manager",false]
+];
+
+function setRole(r){ role=r; render(); }
+
+function render(){
+  document.documentElement.lang=lang;document.documentElement.dir=lang==="fa"?"rtl":"ltr";
+  const set=(id,fa,en)=>{const e=document.getElementById(id);if(e)e.textContent=L(fa,en);};
+  set("t_title","معماری داشبورد","Dashboard architecture");
+  set("t_sub","روی مسیرِ فرآیند/خرید · منوی نقش‌محور · نه ۷۰ دکمه","On the process/purchase path · role-based menu · not 70 buttons");
+  document.getElementById("r_seller").textContent=L("فروشنده","Seller");
+  document.getElementById("r_manager").textContent=L("مدیر","Manager");
+  document.getElementById("r_admin").textContent=L("ادمین","Admin");
+  ["seller","manager","admin"].forEach(x=>document.getElementById("r_"+x).className=role===x?"on":"");
+
+  document.getElementById("legend").innerHTML=
+    `<span><span class="d p"></span>${L("مهم — جلوی گروه","Primary — front of group")}</span>`+
+    `<span><span class="d s"></span>${L("کم‌اهمیت — در مسیر، نه جلوی صفحه","Secondary — along the path, not front")}</span>`;
+
+  const visible=ITEMS.filter(it=>RANK[role]>=RANK[it[4]]);
+  document.getElementById("count").innerHTML=L(
+    `این نقش <b>${visible.length}</b> آیتم در <b>${new Set(visible.map(v=>v[3])).size}</b> گروه می‌بیند`,
+    `This role sees <b>${visible.length}</b> items in <b>${new Set(visible.map(v=>v[3])).size}</b> groups`);
+
+  const spine=document.getElementById("spine"); spine.innerHTML="";
+  let n=0;
+  STAGES.forEach(st=>{
+    const its=visible.filter(it=>it[3]===st.id)
+      .sort((a,b)=>(b[5]?1:0)-(a[5]?1:0));
+    if(its.length===0) return;
+    n++;
+    const isSet=st.id===99;
+    const costTxt = isSet ? "" :
+      `<span class="cost"><b>${st.cost[0]}</b> · ${st.cost[1]}${st.cost[2]?` · ${st.cost[2]}`:""}</span>`;
+    const pills=its.map(it=>{
+      const label=lang==="fa"?it[1]:it[2];
+      const cls=it[5]?"pill primary":"pill sec";
+      return `<span class="${cls}"><span class="tick"></span>${label}</span>`;
+    }).join("");
+    spine.innerHTML+=`<div class="stage ${isSet?"settings":""}">
+      <div class="head"><span class="num">${isSet?"⚙":n}</span>
+        <b>${lang==="fa"?st.fa:st.en}</b>${costTxt}</div>
+      <div class="items">${pills}</div></div>`;
+  });
+
+  document.getElementById("t_note").innerHTML=L(
+    "منو از یک <b>نقشهٔ واحد</b> در بک‌اند می‌آید؛ UI دکمه hardcode نمی‌کند. هر نقش فقط آیتم‌های مجازش را می‌بیند (فروشنده صفحهٔ حاکمیت/تنظیمات را نمی‌بیند) — به‌جای ۷۰ دکمه، ۲۷ آیتم در ۸ گروه روی مسیرِ فرآیند. موارد مهمِ هر گروه اول می‌آیند؛ کم‌اهمیت‌ها (نقطه‌چین) در ادامهٔ مسیر، نه جلوی صفحه. هزینهٔ هر مرحله تخمینی است و باید از پیشنهادِ رسمیِ روز گرفته شود.",
+    "The menu comes from a <b>single backend blueprint</b>; the UI hardcodes nothing. Each role sees only its allowed items (a seller never sees governance/settings) — instead of 70 buttons, 27 items in 8 groups along the process path. Each group's primary items come first; secondary ones (dashed) sit further along the path, not up front. Per-stage cost is indicative and should be confirmed by an official same-day quote.");
+
+  document.getElementById("t_foot").textContent=L(
+    "افزودنِ ماژولِ جدید = یک ردیف در همان نقشه (مرحله + نقش + مهم/کم‌اهمیت)؛ داشبورد خودکار مرتب می‌ماند و هرگز به انبوهِ دکمه تبدیل نمی‌شود.",
+    "Adding a new module = one row in the same blueprint (stage + role + primary/secondary); the dashboard stays ordered automatically and never turns into a wall of buttons.");
+}
+function toggleLang(){lang=lang==="fa"?"en":"fa";render();}
+render();
+</script>
+</body>
+</html>

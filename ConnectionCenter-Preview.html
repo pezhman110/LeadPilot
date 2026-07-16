@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Connection Center — رادار غربال اتصالات</title>
+<style>
+:root{
+  --void:#07060D; --panel:#0F0C1A; --panel2:#151024; --edge:rgba(214,178,102,.16);
+  --gold:#D6B266; --amber:#F2CE80; --ink:#ECE7F5; --dim:#9C93B4;
+  --ok:#54B78A; --warn:#E4A94C; --bad:#E1685E; --test:#5BB6D6; --idle:#4A4460;
+}
+*{box-sizing:border-box}
+body{margin:0;background:
+  radial-gradient(900px 500px at 80% -10%, #1a1330 0%, transparent 60%),
+  radial-gradient(700px 500px at 0% 110%, #12182b 0%, transparent 55%),
+  var(--void);
+  color:var(--ink);font-family:'Vazirmatn','Segoe UI',Tahoma,sans-serif;line-height:1.6;min-height:100vh}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px 60px}
+header{display:flex;align-items:center;justify-content:space-between;padding:22px 0;border-bottom:1px solid var(--edge)}
+.mark{display:flex;align-items:center;gap:13px}
+.beam{width:42px;height:42px;border-radius:12px;position:relative;background:conic-gradient(from 0deg,var(--gold),transparent 70%);animation:spin 3.6s linear infinite}
+.beam::after{content:"";position:absolute;inset:5px;border-radius:8px;background:var(--panel)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.mark b{font-size:16px;letter-spacing:.2px}
+.mark small{display:block;color:var(--dim);font-weight:400;font-size:12px}
+.lang{background:transparent;border:1px solid var(--edge);color:var(--ink);border-radius:9px;padding:7px 13px;cursor:pointer;font-family:inherit;font-size:12px}
+h2{color:var(--amber);font-size:15px;letter-spacing:2px;text-transform:uppercase;margin:26px 0 4px;font-weight:600}
+.sub{color:var(--dim);font-size:13px;margin-bottom:14px}
+
+/* Readiness gate — the signature */
+.gate{display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:center;
+  background:linear-gradient(135deg,var(--panel2),var(--panel));border:1px solid var(--edge);
+  border-radius:18px;padding:20px 24px;margin:8px 0 26px;position:relative;overflow:hidden}
+.gate::before{content:"";position:absolute;inset:0;background:radial-gradient(400px 200px at 100% 0%,rgba(214,178,102,.06),transparent)}
+.meter{width:118px;height:118px;border-radius:50%;display:grid;place-items:center;position:relative;
+  background:conic-gradient(var(--mc,var(--idle)) var(--deg,0deg), rgba(255,255,255,.05) 0deg);transition:.5s}
+.meter::after{content:"";position:absolute;inset:10px;border-radius:50%;background:var(--panel)}
+.meter .val{position:relative;text-align:center}
+.meter .val b{font-size:26px;color:var(--mc,var(--ink))}
+.meter .val span{display:block;font-size:10px;color:var(--dim);letter-spacing:1px}
+.verdict b{font-size:19px}
+.verdict.ready b{color:var(--ok)} .verdict.blocked b{color:var(--bad)}
+.verdict p{margin:6px 0 0;font-size:13px;color:var(--dim)}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.chip{font-size:11px;padding:3px 9px;border-radius:20px;border:1px solid}
+.chip.b{color:var(--bad);border-color:rgba(225,104,94,.4);background:rgba(225,104,94,.08)}
+.chip.w{color:var(--warn);border-color:rgba(228,169,76,.4);background:rgba(228,169,76,.08)}
+
+/* connector table */
+.rows{display:flex;flex-direction:column;gap:7px}
+.row{display:grid;grid-template-columns:34px 1fr auto auto;gap:12px;align-items:center;
+  background:var(--panel);border:1px solid var(--edge);border-radius:12px;padding:11px 14px}
+.ord{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font-size:12px;color:var(--gold);background:rgba(214,178,102,.08);border:1px solid var(--edge)}
+.who b{font-size:14px} .who small{color:var(--dim);font-size:11.5px}
+.tag{font-size:10px;padding:2px 7px;border-radius:6px;margin-inline-start:7px;vertical-align:middle}
+.tag.crit{color:var(--bad);background:rgba(225,104,94,.1)}
+.tag.cat{color:var(--dim);background:rgba(255,255,255,.04)}
+.state{display:flex;align-items:center;gap:7px;font-size:12px;min-width:120px;justify-content:flex-end}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--idle);flex:0 0 9px}
+.dot.Healthy{background:var(--ok);box-shadow:0 0 9px var(--ok)}
+.dot.Degraded{background:var(--warn);box-shadow:0 0 8px var(--warn)}
+.dot.Testing{background:var(--test);animation:pulse .9s infinite}
+.dot.AuthenticationFailed,.dot.Unavailable,.dot.RateLimited,.dot.QuotaExceeded{background:var(--bad);box-shadow:0 0 8px var(--bad)}
+@keyframes pulse{50%{opacity:.3}}
+.test-btn{background:transparent;border:1px solid var(--edge);color:var(--amber);border-radius:8px;padding:6px 12px;cursor:pointer;font-family:inherit;font-size:12px}
+.test-btn:hover{background:rgba(214,178,102,.08)}
+.bar{display:flex;gap:10px;margin:18px 0 8px;flex-wrap:wrap}
+.bar button{flex:0 0 auto;background:linear-gradient(135deg,var(--gold),var(--amber));color:#231703;border:0;border-radius:10px;padding:10px 18px;font-weight:700;cursor:pointer;font-family:inherit;font-size:13px}
+.bar button.ghost{background:transparent;color:var(--ink);border:1px solid var(--edge);font-weight:500}
+.bar button:disabled{opacity:.35;cursor:not-allowed}
+.note{font-size:12px;color:var(--dim);border:1px dashed var(--edge);border-radius:11px;padding:11px 15px;margin-top:16px}
+.note b{color:var(--amber)}
+.run{margin-top:8px}
+.res{display:grid;grid-template-columns:1fr auto;gap:8px;font-family:'Space Grotesk',monospace;font-size:12.5px;
+  background:var(--panel);border:1px solid var(--edge);border-radius:9px;padding:8px 13px;margin-top:6px}
+.res .src{color:var(--dim);font-size:11px}
+.res .ok{color:var(--ok)}
+footer{color:var(--dim);font-size:11.5px;border-top:1px solid var(--edge);margin-top:34px;padding-top:16px}
+code{background:rgba(255,255,255,.05);padding:1px 6px;border-radius:5px;color:var(--amber);font-size:11.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark"><div class="beam"></div>
+      <div><b id="t_title"></b><small id="t_sub"></small></div></div>
+    <button class="lang" onclick="toggleLang()">EN / فارسی</button>
+  </header>
+
+  <h2 id="t_gateH"></h2>
+  <div class="sub" id="t_gateS"></div>
+  <div class="gate">
+    <div class="meter" id="meter"><div class="val"><b id="m_pct">0%</b><span id="t_ready"></span></div></div>
+    <div>
+      <div class="verdict" id="verdict"><b id="v_txt"></b><p id="v_desc"></p></div>
+      <div class="chips" id="chips"></div>
+    </div>
+  </div>
+
+  <h2 id="t_connH"></h2>
+  <div class="sub" id="t_connS"></div>
+  <div class="rows" id="rows"></div>
+
+  <div class="bar">
+    <button class="ghost" onclick="testAll()" id="b_testall"></button>
+    <button onclick="startRun()" id="b_start"></button>
+  </div>
+
+  <div class="run" id="run"></div>
+
+  <div class="note" id="t_note"></div>
+
+  <footer id="t_foot"></footer>
+</div>
+
+<script>
+let lang="fa";
+const L=(fa,en)=>lang==="fa"?fa:en;
+
+// وضعیت‌ها مطابق ConnectorStatus واقعی
+// دسته‌ها مطابق ConnectorCategory؛ منابعِ کشف = InternalData/Search/ContactProvider/LeadForm
+const DISCOVERY=["InternalData","Search","ContactProvider","LeadForm"];
+let C=[
+ {ord:1, code:"CRM_INTERNAL", fa:"داده داخلی و CRM", en:"Internal data & CRM", cat:"InternalData", crit:true, st:"NotConfigured"},
+ {ord:2, code:"CORP_SITE",    fa:"وب‌سایت رسمی شرکت‌ها", en:"Corporate website", cat:"CorporateWebsite", crit:false, st:"NotConfigured"},
+ {ord:3, code:"SEARCH_PRIMARY", fa:"موتور جست‌وجو", en:"Search engine", cat:"Search", crit:true, st:"NotConfigured"},
+ {ord:4, code:"PROVIDER_LOW", fa:"Provider ارزان", en:"Low-cost provider", cat:"ContactProvider", crit:false, st:"NotConfigured"},
+ {ord:5, code:"META_LEADFORM", fa:"Meta Lead Forms", en:"Meta Lead Forms", cat:"LeadForm", crit:false, st:"NotConfigured"},
+ {ord:6, code:"WHATSAPP_BIZ", fa:"WhatsApp Business", en:"WhatsApp Business", cat:"Messaging", crit:true, st:"NotConfigured"},
+ {ord:7, code:"AI_SCORING",   fa:"امتیازدهی AI", en:"AI scoring", cat:"ArtificialIntelligence", crit:false, st:"NotConfigured"},
+ {ord:8, code:"MOBILE_SYNC",  fa:"همگام‌سازی موبایل", en:"Mobile sync", cat:"MobileContacts", crit:false, st:"NotConfigured"}
+];
+let ran=false;
+
+// منطقِ گیت — عیناً مثل StartupReadinessCalculator بک‌اند
+function readiness(){
+  const enabled=C.filter(x=>x.st!=="NotConfigured"&&x.st!=="Disabled");
+  const usable=s=>s==="Healthy"||s==="Degraded";
+  const blocking=enabled.filter(x=>x.crit&&!usable(x.st)).map(x=>x.code);
+  const warnings=enabled.filter(x=>!x.crit&&x.st!=="Healthy").map(x=>x.code+": "+x.st);
+  const hasSource=enabled.some(x=>DISCOVERY.includes(x.cat)&&usable(x.st));
+  if(!hasSource) blocking.push("NO_USABLE_DISCOVERY_SOURCE");
+  const healthy=enabled.filter(x=>x.st==="Healthy").length;
+  return {canStart:blocking.length===0, healthy, total:enabled.length||1,
+          blocking:[...new Set(blocking)], warnings};
+}
+
+function testOne(code){
+  const c=C.find(x=>x.code===code); if(!c)return;
+  const prev=c.st; c.st="Testing"; render();
+  setTimeout(()=>{
+    // شبیه‌سازیِ نتیجهٔ واقعیِ Adapter: TEST_SOURCE سالم؛ بقیه بسته به داشتنِ «کلید»
+    c.st = c._configured ? "Healthy" : "AuthenticationFailed";
+    render();
+  },520);
+}
+function configure(code){
+  const c=C.find(x=>x.code===code); if(!c)return;
+  c._configured=true; c.st="Testing"; render();
+  setTimeout(()=>{ c.st="Healthy"; render(); },520);
+}
+function testAll(){ C.forEach((c,i)=>setTimeout(()=>configure(c.code), i*160)); }
+function startRun(){ if(!readiness().canStart)return; ran=true; render(); }
+
+function render(){
+  document.documentElement.lang=lang;document.documentElement.dir=lang==="fa"?"rtl":"ltr";
+  const q=(id,fa,en)=>document.getElementById(id).textContent=L(fa,en);
+  q("t_title","رادار غربال اتصالات","Connection Screening Radar");
+  q("t_sub","مرکز اتصالات — شرطِ شروعِ موتور","Connection Center — engine start gate");
+  q("t_gateH","گیت آمادگی","Readiness gate");
+  q("t_gateS","با اتصالِ حیاتیِ قرمز، موتور شروع نمی‌شود.","A critical red connector blocks the engine from starting.");
+  q("t_ready","آمادگی","READY");
+  q("t_connH","اتصال‌ها","Connectors");
+  q("t_connS","به ترتیبِ اجرا. «آزمایش» واقعاً Adapter را با Timeout صدا می‌زند و تاریخچه ثبت می‌شود.","In execution order. \u201cTest\u201d actually calls the adapter with a timeout and records history.");
+  document.getElementById("b_testall").textContent=L("پیکربندی و آزمایشِ همه","Configure & test all");
+  document.getElementById("b_start").textContent=L("شروع اجرای آزمایشی (۱۰ نتیجه)","Start test run (10 results)");
+
+  const r=readiness();
+  const pct=Math.round(r.healthy/r.total*100);
+  const meter=document.getElementById("meter");
+  const mc=r.canStart?"var(--ok)":"var(--bad)";
+  meter.style.setProperty("--deg",(pct*3.6)+"deg");
+  meter.style.setProperty("--mc",mc);
+  document.getElementById("m_pct").textContent=pct+"%";
+  const verdict=document.getElementById("verdict");
+  verdict.className="verdict "+(r.canStart?"ready":"blocked");
+  document.getElementById("v_txt").textContent=r.canStart?L("آماده شروع","Ready to start"):L("شروع مسدود است","Start blocked");
+  document.getElementById("v_desc").textContent=r.canStart
+    ? L(`${r.healthy} اتصالِ سالم، حداقل یک منبعِ کشف فعال است.`,`${r.healthy} healthy, at least one discovery source active.`)
+    : L("تا رفعِ موارد زیر، اجرای روزانه و آزمایشی شروع نمی‌شود.","Daily and test runs stay blocked until the items below are fixed.");
+  const chips=document.getElementById("chips");
+  chips.innerHTML="";
+  r.blocking.forEach(b=>{const s=document.createElement("span");s.className="chip b";
+    s.textContent=(b==="NO_USABLE_DISCOVERY_SOURCE"?L("هیچ منبعِ کشفِ سالمی نیست","No healthy discovery source"):b);chips.appendChild(s);});
+  r.warnings.forEach(w=>{const s=document.createElement("span");s.className="chip w";s.textContent=w;chips.appendChild(s);});
+
+  const rows=document.getElementById("rows"); rows.innerHTML="";
+  C.forEach(c=>{
+    const el=document.createElement("div"); el.className="row";
+    el.innerHTML=`<div class="ord">${c.ord}</div>
+      <div class="who"><b>${lang==="fa"?c.fa:c.en}</b>
+        <span class="tag cat">${c.cat}</span>${c.crit?`<span class="tag crit">${L("حیاتی","critical")}</span>`:""}
+        <br><small>${c.code}${c._configured?" · SecretRef "+L("ثبت شد","set"):""}</small></div>
+      <div class="state"><span class="dot ${c.st}"></span>${c.st}</div>
+      <button class="test-btn" onclick="${c._configured?`testOne('${c.code}')`:`configure('${c.code}')`}">${c._configured?L("آزمایش","Test"):L("پیکربندی","Configure")}</button>`;
+    rows.appendChild(el);
+  });
+
+  document.getElementById("b_start").disabled=!r.canStart;
+
+  const run=document.getElementById("run"); run.innerHTML="";
+  if(ran){
+    const h=document.createElement("h2"); h.textContent=L("۱۰ نتیجهٔ اول","First 10 results"); run.appendChild(h);
+    const s=document.createElement("div"); s.className="sub";
+    s.textContent=L("همه ماسک‌شده، منبع‌دار و غیرتکراری. شمارهٔ کامل فقط برای مدیر (Reveal با Audit).",
+      "All masked, sourced, unique. Full number manager-only (Reveal with audit).");
+    run.appendChild(s);
+    const srcs=["CRM_INTERNAL","SEARCH_PRIMARY","META_LEADFORM","PROVIDER_LOW"];
+    for(let i=1;i<=10;i++){
+      const n="+9715"+Math.floor(10000000+Math.random()*89999999);
+      const masked=n.slice(0,6)+"****"+n.slice(-4);
+      const src=srcs[i%srcs.length];
+      const cost=src==="PROVIDER_LOW"?"2.00 AED":"0.00 AED";
+      const d=document.createElement("div"); d.className="res";
+      d.innerHTML=`<span class="ok">#${i}  ${masked}</span><span class="src">${src} · ${cost}</span>`;
+      run.appendChild(d);
+    }
+  }
+
+  document.getElementById("t_note").innerHTML=L(
+    "<b>امنیت:</b> رمز/Token/API Key هرگز در دیتابیس یا لاگ ذخیره نمی‌شود؛ فقط <code>SecretReference</code> نگهداری می‌شود و مقدار در لحظهٔ آزمایش از Secret Store خوانده می‌شود. Adapterِ فعلی <code>TEST_SOURCE</code> است؛ Adapterهای واقعی فقط با API رسمیِ هر پلتفرم اضافه می‌شوند.",
+    "<b>Security:</b> secrets are never stored in the database or logs; only a <code>SecretReference</code> is kept, and the value is read from the Secret Store at test time. Current adapter is <code>TEST_SOURCE</code>; real adapters are added only via each platform's official API.");
+
+  document.getElementById("t_foot").textContent=L(
+    "قواعدِ گیت (مثلِ بک‌اند): اتصالِ حیاتیِ غیرِ Healthy/Degraded → مسدود؛ غیرحیاتیِ غیرِ Healthy → فقط هشدار؛ نبودِ منبعِ کشفِ سالم → مسدود. این صفحه دقیقاً همان منطقِ StartupReadinessCalculator را اجرا می‌کند.",
+    "Gate rules (same as backend): critical connector not Healthy/Degraded → blocked; non-critical not Healthy → warning only; no healthy discovery source → blocked. This page runs the exact StartupReadinessCalculator logic.");
+}
+function toggleLang(){lang=lang==="fa"?"en":"fa";render();}
+render();
+</script>
+</body>
+</html>
